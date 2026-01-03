@@ -3,13 +3,7 @@
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "react-bootstrap";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -44,7 +38,7 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (error) throw error;
@@ -59,11 +53,11 @@ export function SignUpForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Card.Header>
+          <Card.Title className="text-2xl">Sign up</Card.Title>
+          <Card.Subtitle>Create a new account</Card.Subtitle>
+        </Card.Header>
+        <Card.Body>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
@@ -113,7 +107,7 @@ export function SignUpForm({
               </Link>
             </div>
           </form>
-        </CardContent>
+        </Card.Body>
       </Card>
     </div>
   );

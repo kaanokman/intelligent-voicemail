@@ -66,3 +66,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Sidebar ListGroup active styling */
+.list-group-item.active {
+  background-color: #0d6dfd44 !important;
+  color: #0d6dfd !important;
+  border: none !important;
+}
+
+.list-group-item.active:hover {
+  background-color: #0d6dfd44 !important;
+  color: #0d6dfd !important;
+  border: none !important;
+}
+
+.list-group-item:hover {
+  background-color: #0d6dfd11 !important;
+}
