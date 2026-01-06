@@ -82,6 +82,7 @@ export default function Leads({ leadProps }: { leadProps: LeadType[] }) {
 
     if (!filteredLeads.some(lead => lead.employees)) {
       toast.error(`Company employee count unknown`, toastSettings);
+      setLoading(false);
     } else {
       const response = await fetch("/api/rank", {
         method: "POST",
