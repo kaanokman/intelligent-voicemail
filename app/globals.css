@@ -69,17 +69,17 @@
 
 /* Custom Sidebar ListGroup active styling */
 .list-group-item.active {
-  background-color: #0d6dfd44 !important;
-  color: #0d6dfd !important;
+  background-color: #0018EA22 !important;
+  color: #0018EA !important;
   border: none !important;
 }
 
 .list-group-item.active:hover {
-  background-color: #0d6dfd44 !important;
-  color: #0d6dfd !important;
+  background-color: #0018EA22 !important;
+  color: #0018EA !important;
   border: none !important;
 }
 
 .list-group-item:hover {
-  background-color: #0d6dfd11 !important;
+  background-color: #0018EA11 !important;
 }

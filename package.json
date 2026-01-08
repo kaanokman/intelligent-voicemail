@@ -30,6 +30,7 @@
     "react-hook-form": "^7.67.0",
     "react-icons": "^5.5.0",
     "react-toastify": "^11.0.5",
+    "sass": "^1.97.2",
     "tailwind-merge": "^3.3.0",
     "zod": "^3.21.4",
     "zod-to-json-schema": "^3.21.4"

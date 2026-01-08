@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa6";
-import LeadsModal from "./LeadsModal";
+import LeadsModal from "./RentRollModal";
 import { Row, Col } from "react-bootstrap";
 import CSVImportButton from "./csv-import-button";
 

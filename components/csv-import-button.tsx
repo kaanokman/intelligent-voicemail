@@ -34,7 +34,7 @@ export default function CSVImportButton() {
       skipEmptyLines: true,
       complete: async (results) => {
         try {
-          const response = await fetch("/api/leads", {
+          const response = await fetch("/api/rent_roll", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(results.data),
@@ -44,7 +44,7 @@ export default function CSVImportButton() {
 
           if (!response.ok) throw new Error(json.error || "Upload failed");
 
-          toast.success(`Imported ${json.inserted} leads successfully`, toastSettings);
+          toast.success(`Imported ${json.inserted} rent roll data successfully`, toastSettings);
 
           if (fileInputRef.current) {
             fileInputRef.current.value = "";

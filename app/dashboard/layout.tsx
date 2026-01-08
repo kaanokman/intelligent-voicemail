@@ -11,8 +11,11 @@ export default function ProtectedLayout({
 }) {
   return (
     <main className="min-h-screen flex flex-col">
-      <nav className="w-full flex justify-center bg-primary h-20">
-        <div className="w-full flex justify-end items-center p-3 px-5 text-sm">
+      <nav className="w-full d-flex align-items-center justify-content-between px-5 bg-primary h-20">
+        <div style={{ width: 144, height: 40 }}>
+          <img width="144" height="40" src="https://proda.ai/wp-content/uploads/2023/09/PRODA-logo-light-blue-288x80.png" alt="PRODA logo"></img>
+        </div>
+        <div className="w-full flex justify-end items-center text-sm">
           {!hasEnvVars ? (
             <EnvVarWarning />
           ) : (

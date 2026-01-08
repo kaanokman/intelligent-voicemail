@@ -1,7 +1,7 @@
 'use client';
 
 import { Row, Col, Button, Spinner } from "react-bootstrap";
-import Lead from "@/components/Lead";
+import Actions from "@/components/Actions";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -15,45 +15,43 @@ const toastSettings = {
   pauseOnHover: true,
 };
 
-type LeadType = {
+type RentRollType = {
   id: number;
-  organization: string;
-  firstName?: string;
-  lastName?: string;
-  title?: string;
-  employees?: string;
-  rank?: number;
+  address?: string;
+  property: string;
+  unit?: string;
+  tenant?: string;
+  lease_start?: Date;
+  lease_end?: Date;
+  sqft?: number;
+  monthly_payment?: number;
 };
 
-const columns = ["Company", "First Name", "Second Name", "Title", "Employees", "Rank"];
+const columns = ["Address", "Property", "Unit", "Tenant", "Lease Start", "Lease End", "Square Feet", "Monthly Payment"];
 
-export default function Leads({ leadProps }: { leadProps: LeadType[] }) {
+export default function RentRoll({ rentRoll }: { rentRoll: RentRollType[] }) {
   const router = useRouter();
 
-  const [leads, setLeads] = useState<LeadType[]>(leadProps);
+  const [leads, setLeads] = useState<RentRollType[]>(rentRoll);
   const [loading, setLoading] = useState(true);
 
-  const [filteredLeads, setFilteredLeads] = useState<LeadType[]>(leadProps);
+  const [filteredLeads, setFilteredLeads] = useState<RentRollType[]>(rentRoll);
 
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
   const organizations = useMemo(() => {
     return Array.from(
-      new Set(leads.map(l => l.organization).filter(Boolean))
+      new Set(leads.map(l => l.property).filter(Boolean))
     );
   }, [leads]);
 
   const getleads = async () => {
-    const response = await fetch("/api/leads", {
+    const response = await fetch("/api/rent_roll", {
       method: "GET",
     });
     const { result, error } = await response.json();
     if (result) {
-      setLeads(
-        [...result].sort(
-          (a: LeadType, b: LeadType) => (a.rank ?? Infinity) - (b.rank ?? Infinity)
-        )
-      );
+      setLeads(result);
     } else if (error) {
       toast.error(`Error loading leads`, toastSettings);
     }
@@ -64,7 +62,7 @@ export default function Leads({ leadProps }: { leadProps: LeadType[] }) {
     if (!selectedCompany) {
       setFilteredLeads(leads);
     } else {
-      const displayLeads = leads.filter((lead) => lead.organization === selectedCompany);
+      const displayLeads = leads.filter((lead) => lead.property === selectedCompany);
       setFilteredLeads(displayLeads);
       if (!displayLeads.length) {
         setSelectedCompany("");
@@ -75,40 +73,40 @@ export default function Leads({ leadProps }: { leadProps: LeadType[] }) {
   useEffect(() => {
     setLoading(true);
     getleads();
-  }, [leadProps]);
+  }, [rentRoll]);
 
-  const handleRanking = async () => {
-    setLoading(true);
+  // const handleRanking = async () => {
+  //   setLoading(true);
 
-    if (!filteredLeads.some(lead => lead.employees)) {
-      toast.error(`Company employee count unknown`, toastSettings);
-      setLoading(false);
-    } else {
-      const response = await fetch("/api/rank", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filteredLeads)
-      });
-      const { message, error } = await response.json();
-      if (message === 'success') {
-        router.refresh();
-        toast.success(`Successfully ranked leads for ${selectedCompany}`, toastSettings);
-      } else if (message === 'warning') {
-        toast.warn(`No rankable leads for ${selectedCompany}`, toastSettings);
-        setLoading(false);
-      } else if (error) {
-        toast.error(`Error ranking leads`, toastSettings);
-        setLoading(false);
-      }
-    }
-  }
+  //   if (!filteredLeads.some(lead => lead.employees)) {
+  //     toast.error(`Company employee count unknown`, toastSettings);
+  //     setLoading(false);
+  //   } else {
+  //     const response = await fetch("/api/rank", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(filteredLeads)
+  //     });
+  //     const { message, error } = await response.json();
+  //     if (message === 'success') {
+  //       router.refresh();
+  //       toast.success(`Successfully ranked leads for ${selectedCompany}`, toastSettings);
+  //     } else if (message === 'warning') {
+  //       toast.warn(`No rankable leads for ${selectedCompany}`, toastSettings);
+  //       setLoading(false);
+  //     } else if (error) {
+  //       toast.error(`Error ranking leads`, toastSettings);
+  //       setLoading(false);
+  //     }
+  //   }
+  // }
 
   return (
     <div className='d-flex flex-col gap-2'>
       <Row className='justify-content-between'>
         <Col>
           <Form.Group>
-            <Form.Label className='mb-1'>Company</Form.Label>
+            <Form.Label className='mb-1'>Property</Form.Label>
             <Form.Select
               style={{ maxWidth: '500px' }}
               onChange={(e) => setSelectedCompany(e.target.value)}
@@ -122,14 +120,14 @@ export default function Leads({ leadProps }: { leadProps: LeadType[] }) {
             </Form.Select>
           </Form.Group>
         </Col>
-        <Col xs='auto' className='d-flex flex-column justify-content-end'>
+        {/* <Col xs='auto' className='d-flex flex-column justify-content-end'>
           <Button
             style={{ width: 160 }}
             disabled={!selectedCompany || loading}
             onClick={() => handleRanking()}>
             {loading ? <Spinner size='sm' /> : 'Rank Leads'}
           </Button>
-        </Col>
+        </Col> */}
       </Row>
       <div
         style={{
@@ -207,7 +205,7 @@ export default function Leads({ leadProps }: { leadProps: LeadType[] }) {
                           borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
                         }}
                       >
-                        <Lead item={lead} />
+                        <Actions item={lead} />
                       </td>
                     </tr>
                   );
