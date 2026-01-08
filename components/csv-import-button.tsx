@@ -44,7 +44,7 @@ export default function CSVImportButton() {
 
           if (!response.ok) throw new Error(json.error || "Upload failed");
 
-          toast.success(`Imported ${json.inserted} rent roll data successfully`, toastSettings);
+          toast.success(`Imported rent roll data successfully`, toastSettings);
 
           if (fileInputRef.current) {
             fileInputRef.current.value = "";
