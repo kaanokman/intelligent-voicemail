@@ -106,6 +106,7 @@ export default function RentRollModal(props: RentRollModalProps) {
           lease_start: fromDateInputValue(formData.lease_start),
           lease_end: fromDateInputValue(formData.lease_end),
           ...(props.item ? { id: props.item.id } : {}),
+          invalid_columns: [],
         })
       });
       const { message, error } = await result.json();

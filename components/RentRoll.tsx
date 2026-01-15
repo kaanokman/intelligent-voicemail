@@ -67,7 +67,7 @@ function calculateOccupancyRates(
   if (totalTime <= 0 || rentData.length === 0) {
     return {
       type: "pie",
-      data: [{ id: 0, value: 1, label: "", color: "#ccc", seriesStyle: { stroke: "none" } }],
+      data: [{ id: 0, value: 1, label: "", color: "#ccc" }],
       innerRadius: 0,
       outerRadius: 75,
       valueFormatter: () => "",
@@ -100,7 +100,7 @@ function calculateOccupancyRates(
   if (validUnits === 0) {
     return {
       type: "pie",
-      data: [{ id: 0, value: 1, label: "", color: "#ccc", seriesStyle: { stroke: "none" } }],
+      data: [{ id: 0, value: 1, label: "", color: "#ccc" }],
       innerRadius: 0,
       outerRadius: 75,
       valueFormatter: () => "",
@@ -343,7 +343,7 @@ export default function RentRoll({ rentRoll }: { rentRoll: RentRollType[] }) {
 
     setFilteredData(tableData);
 
-    const occData = rentRollData.filter(unit => {
+    const occData = tableData.filter(unit => {
       if (selectedCompany && unit.property !== selectedCompany) return false;
       return !!unit.lease_start;
     });
@@ -562,8 +562,7 @@ export default function RentRoll({ rentRoll }: { rentRoll: RentRollType[] }) {
           </div>
         </Col>
         <Col xs='auto'>
-          <div className='d-flex flex-column border rounded text-center px-3 pt-3 pb-1'
-            style={{ pointerEvents: filteredData.length ? 'auto' : 'none' }}>
+          <div className='d-flex flex-column border rounded text-center px-3 pt-3 pb-1'>
             <div className='text-nowrap text-2xl font-semibold'>Occupancy Rate</div>
             <div className="d-flex justify-content-center pt-3">
               <Dropdown>
@@ -647,23 +646,18 @@ export default function RentRoll({ rentRoll }: { rentRoll: RentRollType[] }) {
                 </Modal.Footer>
               </Modal>
             </div>
-
-            {occupancyRates ?
-              <PieChart
-                series={occupancyRates ? occupancyRates : []}
-                slotProps={{
-                  pie: {
-                    seriesStyle: {
-                      stroke: 'none', // removes the line around the wedge
-                    },
-                  },
-                  legend: { hidden: filteredData.length ? false : true }
-                }}
-                width={200}
-                height={200}
-              /> :
-              <div style={{ height: 200, width: 200 }} className='d-flex justify-content-center align-items-center'> <Spinner /></div>
-            }
+            <div style={{ pointerEvents: filteredData.length ? 'auto' : 'none' }}>
+              {occupancyRates ?
+                <PieChart
+                  hideLegend={filteredData.length ? false : true}
+                  series={occupancyRates ? occupancyRates : []}
+                  style={{ strokeWidth: 0 }}
+                  width={200}
+                  height={200}
+                /> :
+                <div style={{ height: 200, width: 200 }} className='d-flex justify-content-center align-items-center'> <Spinner /></div>
+              }
+            </div>
           </div>
         </Col>
       </Row>
