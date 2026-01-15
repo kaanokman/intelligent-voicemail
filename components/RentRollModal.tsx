@@ -11,7 +11,7 @@ dayjs.extend(customParseFormat);
 
 type RentRollModalProps = {
   item?: {
-    id: string;
+    id: number;
     address?: string;
     property: string;
     unit?: string;
