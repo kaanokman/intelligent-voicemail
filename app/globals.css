@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 350 88% 8%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
@@ -29,6 +29,8 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --bs-body-color: hsl(var(--foreground));
+    --bs-body-bg: hsl(var(--background));
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -64,20 +66,24 @@
   }
   body {
     @apply bg-background text-foreground;
+    color: hsl(var(--foreground)); /* ensure plain CSS uses it too */
   }
 }
 
 /* Custom Sidebar ListGroup active styling */
 .list-group-item.active {
-  background-color: #0018EA22 !important;
-  color: #0018EA !important;
+  background-color: #fbf58222 !important;
+  border-color: #ecd7c6 !important;
+  color: #28030f !important;
   border: none !important;
+  border: 1 solid #ecd7c6 !important;
 }
 
 .list-group-item.active:hover {
-  background-color: #0018EA22 !important;
-  color: #0018EA !important;
-  border: none !important;
+  background-color: #ecd7c6 !important;
+  border-color: #fbf582 !important;
+  color: #28030f !important;
+  border: 1 solid #ecd7c6 !important;
 }
 
 .list-group-item:hover {
@@ -90,4 +96,36 @@
 
 .table-striped > tbody > tr.table-warning {
   --bs-table-striped-bg: #fff3cd;
+}
+
+.btn-primary {
+  --bs-btn-color: #28030f;
+  --bs-btn-hover-color: #28030f;
+  --bs-btn-active-color: #28030f;
+  --bs-btn-border-color: #fbf582;
+  --bs-btn-hover-border-color: #fbf582;
+  --bs-btn-active-border-color: #fbf582;
+}
+
+.btn-secondary-outline {
+  --bs-btn-color: #28030f;
+  --bs-btn-border-color: #28030f;
+  --bs-btn-border-color: #28030f;
+
+  --bs-btn-hover-color: #fcfaf8;
+  --bs-btn-hover-bg: #28030f;
+  --bs-btn-hover-border-color: #28030f;
+
+  --bs-btn-active-color: #fcfaf8;
+  --bs-btn-active-border-color: #28030f;
+}
+
+.btn-light {
+  --bs-btn-color: #28030f;
+  --bs-btn-hover-color: #28030f;
+  --bs-btn-active-color: #28030f;
+  --bs-btn-border-color: #fcfaf8;
+  --bs-btn-hover-border-color: #fcfaf8;
+  --bs-btn-hover-bg: #ecd7c6;
+  --bs-btn-active-border-color: #fcfaf8;
 }

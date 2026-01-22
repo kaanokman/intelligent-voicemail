@@ -12,7 +12,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <ListGroup className='rounded-0 border-0'>
+    <ListGroup className='rounded-0 border-0 w-100'>
       {navItems.map((item) => (
         <ListGroup.Item
           className='border-0 rounded m-0 bg-transparent'

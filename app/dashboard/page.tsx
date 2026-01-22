@@ -23,12 +23,12 @@ async function getRentRollData() {
 
 async function RentRollPage() {
   const rentRollData = await getRentRollData();
-  return <RentRoll rentRoll={rentRollData} />;
+  return <RentRoll rentRoll={[]} />;
 }
 
 export default function Dashboard() {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 w-full">
       <Row>
         <Col xs sm="auto" className="text-3xl font-semibold">Rent Roll</Col>
         <Col xs="auto"><AddItem /></Col>
