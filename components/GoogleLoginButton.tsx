@@ -1,44 +1,52 @@
 "use client";
 
-import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { Spinner } from "react-bootstrap";
 
 export default function GoogleLoginButton() {
-  const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
-  const divRef = useRef(null);
+    const router = useRouter();
+    const supabase = useMemo(() => createClient(), []);
 
-  const handleSignInWithGoogle = async (credentialResponse: CredentialResponse) => {
-    try {
-      if (!credentialResponse.credential) {
-        throw new Error('Google credentials missing');
-      }
+    const [ready, setReady] = useState(false);
 
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: "google",
-        token: credentialResponse.credential,
-      });
-      if (error) throw error;
+    useEffect(() => {
+        // GoogleLogin renders after script loads
+        const t = setTimeout(() => setReady(true), 300);
+        return () => clearTimeout(t);
+    }, []);
 
-      // refresh first so server components update, then navigate
-      router.replace("/dashboard");
-      router.refresh();
-    } catch (err) {
-      console.error("Error logging in with Google", err);
-    }
-  };
+    const handleSignInWithGoogle = async (credentialResponse: CredentialResponse) => {
+        try {
+            if (!credentialResponse.credential) {
+                throw new Error('Google credentials missing');
+            }
 
-  return (
-    <>
-      <GoogleLogin
-        onSuccess={(credentialResponse) => { void handleSignInWithGoogle(credentialResponse); }}
-        onError={() => {
-          console.log('Login Failed');
-        }}
-      />
-    </>
-  );
+            const { error } = await supabase.auth.signInWithIdToken({
+                provider: "google",
+                token: credentialResponse.credential,
+            });
+            if (error) throw error;
+
+            // refresh first so server components update, then navigate
+            router.replace("/dashboard");
+            router.refresh();
+        } catch (err) {
+            console.error("Error logging in with Google", err);
+        }
+    };
+
+    return (ready ?
+        <GoogleLogin
+            onSuccess={(credentialResponse) => { void handleSignInWithGoogle(credentialResponse); }}
+            onError={() => {
+                console.log('Login Failed');
+            }}
+        /> :
+        <div className='flex justify-center items-center border' style={{ height: 40, minHeight: 40 }}>
+            <Spinner size='sm' />
+        </div>
+    );
 }

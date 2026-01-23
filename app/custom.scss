@@ -1,7 +1,10 @@
-// custom.scss
+// @import "../node_modules/bootstrap/scss/bootstrap";
 
-@use "bootstrap" with (
-  $primary: #fbf582,
-  $secondary: #28030f,
-  $light: #fcfaf8,
+@use "../node_modules/bootstrap/scss/bootstrap" with ($primary: #fbf582,
+    $secondary: #28030f,
+    $light: #fcfaf8,
 );
+
+// $primary: #fbf582;
+// $secondary: #28030f;
+// $light: #fcfaf8;

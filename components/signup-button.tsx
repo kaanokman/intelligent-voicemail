@@ -4,9 +4,9 @@ import { Button } from "react-bootstrap";
 import { useRouter } from "next/navigation";
 
 export default function SignupButton() {
-  const router = useRouter();
+    const router = useRouter();
 
-  return <Button variant='primary' className='rounded-3' onClick={() => router.push("/auth/sign-up")}>
-    Sign up
-  </Button>;
+    return <Button variant='outline-secondary' onClick={() => router.push("/auth/sign-up")}>
+        Sign up
+    </Button>;
 }

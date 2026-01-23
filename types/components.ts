@@ -1,12 +1,11 @@
-export interface RentRollType {
-  id: number;
-  address?: string;
-  property: string;
-  unit?: string;
-  tenant?: string;
-  lease_start?: string;
-  lease_end?: string;
-  sqft?: number;
-  monthly_payment?: number;
-  invalid_columns?: string[];
+export interface VoicemailType {
+    id: number; // bigint → number in JS
+    phone_number: string;
+    patient: string | null;
+    transcript_url: string | null;
+    audio_url: string;
+    reason: string | null;
+    description: string | null;
+    urgency: string | null;
+    timestamp: string; // timestamptz → ISO string
 }

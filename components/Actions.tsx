@@ -8,75 +8,75 @@ import RentRollModal from "./RentRollModal";
 import ConfirmationModal from "./confirmation-modal";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { RentRollType } from "@/types/components";
+import { VoicemailType } from "@/types/components";
 
 type RentRollDataProps = {
-  item?: RentRollType;
+    item?: VoicemailType;
 };
 
 const toastSettings = {
-  autoClose: 3000,
-  hideProgressBar: false,
-  closeOnClick: true,
-  pauseOnHover: true,
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
 };
 
 export default function Actions(props: RentRollDataProps) {
-  const router = useRouter();
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  const [show, setShow] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [loading, setLoading] = useState(false);
+    const router = useRouter();
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    const [show, setShow] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-  async function handleDelete(id: number) {
-    setLoading(true);
-    const response = await fetch("/api/rent_roll", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id })
-    });
-    const { message, error } = await response.json();
-    if (message) {
-      router.refresh();
-      setShowConfirmation(false);
-      toast.success(`Deleted rent roll data`, toastSettings);
-    } else if (error) {
-      console.error(error);
-      toast.error(`Error deleting rent roll data`, toastSettings);
+    async function handleDelete(id: number) {
+        setLoading(true);
+        const response = await fetch("/api/rent_roll", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+        });
+        const { message, error } = await response.json();
+        if (message) {
+            router.refresh();
+            setShowConfirmation(false);
+            toast.success(`Deleted rent roll data`, toastSettings);
+        } else if (error) {
+            console.error(error);
+            toast.error(`Error deleting rent roll data`, toastSettings);
+        }
+        setLoading(false);
     }
-    setLoading(false);
-  }
 
-  return (
-    <>
-      <div className='d-flex gap-2'>
-        <OverlayTrigger trigger={isMobile ? [] : ['hover', 'hover']} overlay={<Tooltip>
-          Edit
-        </Tooltip>}>
-          <Button variant='outline-primary' onClick={() => setShow(true)}
-            style={{ height: 36, width: 36 }}
-            className='p-0 d-flex justify-content-center align-items-center'>
-            <FaEdit style={{ marginLeft: '2px' }} />
-          </Button>
-        </OverlayTrigger>
-        <OverlayTrigger trigger={isMobile ? [] : ['hover', 'hover']} overlay={<Tooltip>
-          Delete
-        </Tooltip>}>
-          <Button variant='outline-danger' onClick={() => setShowConfirmation(true)}
-            style={{ height: 36, width: 36 }}
-            className='p-0 d-flex justify-content-center align-items-center'>
-            <FaRegTrashAlt />
-          </Button>
-        </OverlayTrigger>
-      </div>
-      <ConfirmationModal
-        show={showConfirmation}
-        setShow={setShowConfirmation}
-        message="Are you sure you want to delete this rent roll data?"
-        onConfirm={() => props.item && handleDelete(props.item.id)}
-        loading={loading}
-      />
-      <RentRollModal show={show} setShow={setShow} item={props.item} />
-    </>
-  );
+    return (
+        <>
+            <div className='d-flex gap-2'>
+                <OverlayTrigger trigger={isMobile ? [] : ['hover', 'hover']} overlay={<Tooltip>
+                    Edit
+                </Tooltip>}>
+                    <Button variant='outline-primary' onClick={() => setShow(true)}
+                        style={{ height: 36, width: 36 }}
+                        className='p-0 d-flex justify-content-center align-items-center'>
+                        <FaEdit style={{ marginLeft: '2px' }} />
+                    </Button>
+                </OverlayTrigger>
+                <OverlayTrigger trigger={isMobile ? [] : ['hover', 'hover']} overlay={<Tooltip>
+                    Delete
+                </Tooltip>}>
+                    <Button variant='outline-danger' onClick={() => setShowConfirmation(true)}
+                        style={{ height: 36, width: 36 }}
+                        className='p-0 d-flex justify-content-center align-items-center'>
+                        <FaRegTrashAlt />
+                    </Button>
+                </OverlayTrigger>
+            </div>
+            <ConfirmationModal
+                show={showConfirmation}
+                setShow={setShowConfirmation}
+                message="Are you sure you want to delete this rent roll data?"
+                onConfirm={() => props.item && handleDelete(props.item.id)}
+                loading={loading}
+            />
+            <RentRollModal show={show} setShow={setShow} item={props.item} />
+        </>
+    );
 }
