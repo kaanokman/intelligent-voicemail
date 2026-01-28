@@ -12,105 +12,105 @@ import { useState } from "react";
 import GoogleLoginButton from "./GoogleLoginButton";
 
 export function SignUpForm({
-  className,
-  ...props
+    className,
+    ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [repeatPassword, setRepeatPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
+    const handleSignUp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const supabase = createClient();
+        setIsLoading(true);
+        setError(null);
 
-    if (password !== repeatPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
-      return;
-    }
+        if (password !== repeatPassword) {
+            setError("Passwords do not match");
+            setIsLoading(false);
+            return;
+        }
 
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      if (error) throw error;
-      router.push("/auth/sign-up-success");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        try {
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/dashboard`,
+                },
+            });
+            if (error) throw error;
+            router.push("/auth/sign-up-success");
+        } catch (error: unknown) {
+            setError(error instanceof Error ? error.message : "An error occurred");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  return (
-    <div className="flex flex-col items-center justify-center pb-5 w-full">
-      <Card className="h-auto w-full max-w-sm">
-        <Card.Header className='p-3'>
-          <Card.Title className="text-2xl text-center mb-0">Sign up</Card.Title>
-        </Card.Header>
-        <Card.Body>
-          <form onSubmit={handleSignUp}>
-            <div className="flex flex-col gap-3">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="example@gmail.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
-                <Input
-                  id="repeat-password"
-                  type="password"
-                  required
-                  value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" variant='primary' className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
-              </Button>
-              <div className='align-self-center'>OR</div>
-              <GoogleLoginButton />
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Log in
-              </Link>
-            </div>
-          </form>
-        </Card.Body>
-      </Card>
-    </div>
-  );
+    return (
+        <div className="flex flex-col items-center justify-center pb-5 w-full">
+            <Card className="h-auto w-full max-w-sm">
+                <Card.Header className='p-3'>
+                    <Card.Title className="text-2xl text-center mb-0">Sign up</Card.Title>
+                </Card.Header>
+                <Card.Body>
+                    <form onSubmit={handleSignUp}>
+                        <div className="flex flex-col gap-3">
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="example@gmail.com"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="password">Password</Label>
+                                </div>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="repeat-password">Repeat Password</Label>
+                                </div>
+                                <Input
+                                    id="repeat-password"
+                                    type="password"
+                                    required
+                                    value={repeatPassword}
+                                    onChange={(e) => setRepeatPassword(e.target.value)}
+                                />
+                            </div>
+                            {error && <p className="text-sm text-red-500">{error}</p>}
+                            <Button type="submit" variant='sunlight' className="w-full" disabled={isLoading}>
+                                {isLoading ? "Creating an account..." : "Sign up"}
+                            </Button>
+                            <div className='align-self-center'>OR</div>
+                            <GoogleLoginButton />
+                        </div>
+                        <div className="mt-4 text-center text-sm">
+                            Already have an account?{" "}
+                            <Link href="/auth/login" className="underline underline-offset-4">
+                                Log in
+                            </Link>
+                        </div>
+                    </form>
+                </Card.Body>
+            </Card>
+        </div>
+    );
 }

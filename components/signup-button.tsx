@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 export default function SignupButton() {
     const router = useRouter();
 
-    return <Button variant='outline-secondary' onClick={() => router.push("/auth/sign-up")}>
+    return <Button variant='outline-bark' onClick={() => router.push("/auth/sign-up")}>
         Sign up
     </Button>;
 }

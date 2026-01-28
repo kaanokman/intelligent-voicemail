@@ -30,7 +30,13 @@
         --chart-5: 27 87% 67%;
         --radius: 0.5rem;
         --bs-body-color: hsl(var(--foreground));
-        --bs-body-bg: hsl(var(--background));
+        --bs-emphasis-color: hsl(var(--foreground));
+        --bs-secondary-color: hsl(var(--muted-foreground));
+        --bs-tertiary-color: hsl(var(--muted-foreground));
+
+        --rs-border: #ccc;
+        /* react-select default */
+        --rs-border-hover: #b3b3b3;
     }
 
     .dark {
@@ -69,11 +75,10 @@
     body {
         @apply bg-background text-foreground;
         color: hsl(var(--foreground));
-        /* ensure plain CSS uses it too */
     }
 }
 
-/* Custom Sidebar ListGroup active styling */
+/* custom list group styling */
 .list-group-item.active {
     background-color: #fbf58222 !important;
     border-color: #ecd7c6 !important;
@@ -101,28 +106,6 @@
     --bs-table-striped-bg: #fff3cd;
 }
 
-.btn-primary {
-    --bs-btn-color: #28030f;
-    --bs-btn-hover-color: #28030f;
-    --bs-btn-active-color: #28030f;
-    --bs-btn-border-color: #fbf582;
-    --bs-btn-hover-border-color: #fbf582;
-    --bs-btn-active-border-color: #fbf582;
-}
-
-.btn-secondary-outline {
-    --bs-btn-color: #28030f;
-    --bs-btn-border-color: #28030f;
-    --bs-btn-border-color: #28030f;
-
-    --bs-btn-hover-color: #fcfaf8;
-    --bs-btn-hover-bg: #28030f;
-    --bs-btn-hover-border-color: #28030f;
-
-    --bs-btn-active-color: #fcfaf8;
-    --bs-btn-active-border-color: #28030f;
-}
-
 .btn-light {
     --bs-btn-color: #28030f;
     --bs-btn-hover-color: #28030f;
@@ -141,4 +124,46 @@
     padding-right: 15;
     border-radius: 10;
     font-weight: 500;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #2684ff !important;
+    box-shadow: 0 0 0 1px #2684ff !important;
+    outline: 0 !important;
+}
+
+.form-select:hover {
+    border-color: #2684ff !important;
+    box-shadow: 0 0 0 1px #2684ff !important;
+    outline: 0 !important;
+}
+
+/* React-Bootstrap inputs + selects */
+.form-control,
+.form-select {
+    border: 1px solid var(--rs-border) !important;
+}
+
+/* Hover border like react-select */
+.form-control:hover,
+.form-select:hover {
+    border-color: var(--rs-border-hover) !important;
+}
+
+/* If Bootstrap adds focus styles you want to keep consistent too */
+.form-control:focus,
+.form-select:focus {
+    border-color: #2684ff !important;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    background-color: #f2f2f2 !important;
+    border-color: #e6e6e6 !important;
+}
+
+.form-control,
+.form-select {
+    border-radius: 4px !important;
 }

@@ -7,7 +7,6 @@ import { AuthButton } from "@/components/auth-button";
 import { hasEnvVars } from "@/lib/utils";
 import { Suspense } from "react";
 import "react-toastify/dist/ReactToastify.css";
-import 'bootstrap/dist/css/bootstrap.min.css';
 import './custom.scss';
 import "./globals.css";
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -52,7 +51,7 @@ export default function RootLayout({
                     >
                         <main className="min-h-screen flex">
                             <nav className="w-full flex items-center justify-between
-              px-5 h-20 bg-primary position-fixed z-2">
+                                px-5 h-20 bg-sunlight position-fixed z-2">
                                 <HeidiLogo color='#28030f' />
                                 <div className="w-full flex justify-end items-center text-sm">
                                     {!hasEnvVars ? (

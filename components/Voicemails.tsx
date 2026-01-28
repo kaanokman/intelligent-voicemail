@@ -6,7 +6,6 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 import Table from 'react-bootstrap/Table';
 import { Form } from "react-bootstrap";
-import { PieChart } from '@mui/x-charts/PieChart';
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { Modal, Button, Dropdown, Tooltip, OverlayTrigger } from "react-bootstrap";
 import {
@@ -20,17 +19,11 @@ import { VoicemailType } from "@/types/components";
 import type { ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";
 import { DateTime } from "luxon";
-
-const formatTimestamp = (ts: string) => {
-    return new Intl.DateTimeFormat("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false, // 24h clock
-    }).format(new Date(ts));
-}
+import { useRouter, useSearchParams } from "next/navigation";
+import AddItem from "@/components/add-item";
+import { Badge } from "react-bootstrap";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const urgencyMap: Record<string, number> = {
     low: 0,
@@ -45,49 +38,98 @@ const toastSettings = {
     pauseOnHover: true,
 };
 
-export default function Voicemails({ voicemails }: { voicemails: VoicemailType[] }) {
-    const [filteredVoicemails, setFilteredVoicemails] = useState<VoicemailType[]>(voicemails);
+const LabelBadge = ({ label }: { label: VoicemailType["label"] }) => {
+    // Bootstrap supports bg + text, but not "outline" badges by default,
+    // so we simulate outline with border + transparent bg.
+    const getClass = (label: VoicemailType["label"]) => {
+        if (label === 'new') {
+            return "border-danger text-danger";
+        }
+        if (label === 'processed') {
+            return "border-success text-success";
+        }
+        if (label === 'junk') {
+            return "border-bark text-bark";
+        }
+        return "border-secondary text-secondary";
+    };
+
+    return (
+        <Badge
+            className={`bg-transparent border ${getClass(label)}`}
+            style={{ fontWeight: 600 }}
+        >
+            {label.toUpperCase()}
+        </Badge>
+    );
+};
+
+type RangeISO = { start: string; end: string };
+type RangeDate = { start: Date; end: Date };
+
+export default function Voicemails({ voicemails, error, range }: {
+    voicemails: VoicemailType[];
+    error?: string;
+    range: RangeISO;
+}) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    // Sorting state for the voicemails table
     const [sorting, setSorting] = useState<SortingState>([{ id: "timestamp", desc: true }]);
-    const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>(() => {
-        return {
-            start: DateTime.now().minus({ days: 7 }).startOf("day").toJSDate(),
-            end: DateTime.now().endOf("day").toJSDate()
-        };
-    });
+    // Current date range for which to load voicemails into client from server
+    const [dateRange, setDateRange] = useState<RangeDate>(() => ({
+        start: new Date(range.start),
+        end: new Date(range.end),
+    }));
+    // Whether or not to show the custom date range modal
     const [showRangeModal, setShowRangeModal] = useState(false);
 
-    const mounted = useRef(false);
+    // Function to handle dat range change (fetches voicemails from server to client given new range)
+    const onDateRangeChange = (range: { start: Date; end: Date }) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("start", range.start.toISOString());
+        params.set("end", range.end.toISOString());
+        router.replace(`?${params.toString()}`);
+        router.refresh();
+    };
 
+    // Hook to convert date range to date object on router refresh
+    useEffect(() => {
+        setDateRange({ start: new Date(range.start), end: new Date(range.end) });
+    }, [range.start, range.end]);
+
+    // Function to format timestamp of each row for display
+    const formatTimestamp = useCallback((timestamp: string) => {
+        return new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        }).format(new Date(timestamp));
+    }, []);
+
+    // Columns for voicemails table
     const columnDefs = useMemo<ColumnDef<VoicemailType, any>[]>(() => [
+        { accessorKey: "phone_number", header: "Phone", sortDescFirst: true },
+        { accessorKey: "patient", header: "Patient", sortDescFirst: true },
+        { accessorKey: "reason", header: "Reason for Call", sortDescFirst: true },
+        { accessorKey: "description", header: "Description", sortDescFirst: true },
         {
-            accessorKey: "phone_number",
-            header: "Phone",
-            sortDescFirst: true,
-        },
-        {
-            accessorKey: "patient",
-            header: "Patient",
-            sortDescFirst: true,
-        },
-        {
-            id: "reason",
-            header: "Reason for Call",
-            sortDescFirst: true,
-        },
-        {
-            id: "description",
-            header: "Description",
-            sortDescFirst: true,
-        },
-        {
-            accessorKey: "urgency",
-            header: "Urgency",
-            sortDescFirst: true,
+            accessorKey: "urgency", header: "Urgency", sortDescFirst: true,
             sortingFn: (a, b, id) => {
                 const aVal = urgencyMap[a.getValue(id) as string] ?? -1;
                 const bVal = urgencyMap[b.getValue(id) as string] ?? -1;
                 return aVal - bVal;
             },
+        },
+        {
+            accessorKey: "label",
+            header: "Label",
+            cell: ({ getValue }) => (
+                <LabelBadge label={getValue() as VoicemailType["label"]} />
+            ),
         },
         {
             accessorKey: "timestamp",
@@ -96,36 +138,25 @@ export default function Voicemails({ voicemails }: { voicemails: VoicemailType[]
                 new Date(a.getValue(id) as string).getTime() - new Date(b.getValue(id) as string).getTime(),
             cell: ({ getValue }) => formatTimestamp(getValue() as string),
         },
-    ], [voicemails, dateRange]);
+    ], [formatTimestamp]);
 
-    const getVoicemails = async () => {
-        const response = await fetch("/api/voicemails", { method: "GET" });
-        const { result, error } = await response.json();
-        if (result) {
-            const tableData = result.filter((voicemail: VoicemailType) => {
-                return new Date(voicemail.timestamp) <= dateRange.end &&
-                    new Date(voicemail.timestamp) >= dateRange.start;
-            });
-            setFilteredVoicemails(tableData);
-        } else if (error) {
-            toast.error(`Error loading voicemails`, toastSettings);
-        }
-    };
+    // Voicemails that are currently loaded in from the server to the client, filtered on the front-end by user
+    const filteredVoicemails = useMemo(() => {
+        return voicemails;
+    }, [voicemails])
 
+    // Displays error if voicemails failed to load from server
     useEffect(() => {
-        if (mounted.current) {
-            console.log('run')
-            getVoicemails();
-        } else {
-            mounted.current = true;
-        }
-    }, [voicemails, dateRange]);
+        error && toast.error(error, { ...toastSettings, toastId: 'voicemailsError' });
+    }, [error]);
 
+    // Function to format date range label for display
     const formatRangeLabel = useCallback((start: Date, end: Date) => {
         const fmt: Intl.DateTimeFormatOptions = { month: "short", day: "2-digit", year: "numeric" };
         return `${start.toLocaleDateString("en-US", fmt)} - ${end.toLocaleDateString("en-US", fmt)}`;
     }, []);
 
+    // Voicemails table
     const table = useReactTable({
         data: filteredVoicemails,
         columns: columnDefs,
@@ -136,11 +167,13 @@ export default function Voicemails({ voicemails }: { voicemails: VoicemailType[]
     });
 
     return (
-        <div className='d-flex flex-col gap-3'>
-            <Row className='justify-content-between'>
-                <Col xs='auto'>
+        <div className="flex flex-col gap-3 w-full">
+            <Row>
+                <Col xs sm="auto" className="text-3xl font-semibold">Voicemails</Col>
+                <Col xs="auto"><AddItem /></Col>
+                <Col xs='auto' className='ms-auto'>
                     <Dropdown>
-                        <Dropdown.Toggle variant="outline-secondary" className="w-100 text-start">
+                        <Dropdown.Toggle variant="outline-bark" className="w-100 text-start">
                             {formatRangeLabel(dateRange.start, dateRange.end)}
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
@@ -152,6 +185,7 @@ export default function Voicemails({ voicemails }: { voicemails: VoicemailType[]
                                         const start = new Date();
                                         start.setFullYear(end.getFullYear() - years);
                                         setDateRange({ start, end });
+                                        onDateRangeChange({ start, end });
                                     }}
                                 >
                                     Last {years} Year{years > 1 && "s"}
@@ -163,53 +197,9 @@ export default function Voicemails({ voicemails }: { voicemails: VoicemailType[]
                             </Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
-                    <Modal show={showRangeModal} onHide={() => setShowRangeModal(false)} centered>
-                        <Modal.Header closeButton>
-                            <Modal.Title>Select Date Range</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <form id="range-form">
-                                <div className="d-flex gap-3 align-items-center">
-                                    <input
-                                        type="date"
-                                        name="start"
-                                        defaultValue={dateRange.start.toISOString().slice(0, 10)}
-                                        className="form-control"
-                                    />
-                                    <span>→</span>
-                                    <input
-                                        type="date"
-                                        name="end"
-                                        defaultValue={dateRange.end.toISOString().slice(0, 10)}
-                                        className="form-control"
-                                    />
-                                </div>
-                            </form>
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={() => setShowRangeModal(false)}>
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={() => {
-                                    const form = document.getElementById("range-form") as HTMLFormElement;
-                                    const data = new FormData(form);
-                                    function parseLocalDate(value: string) {
-                                        const [year, month, day] = value.split("-").map(Number);
-                                        return new Date(year, month - 1, day);
-                                    }
-                                    const start = parseLocalDate(data.get("start") as string);
-                                    const end = parseLocalDate(data.get("end") as string);
-                                    setDateRange({ start, end });
-                                    setShowRangeModal(false);
-                                }}
-                            >
-                                Apply
-                            </Button>
-                        </Modal.Footer>
-                    </Modal>
                 </Col>
+            </Row>
+            {/* <Row>
                 <Col xs md={4}>
                     <Form.Group>
                         <Form.Label className='mb-1'>Property</Form.Label>
@@ -226,7 +216,7 @@ export default function Voicemails({ voicemails }: { voicemails: VoicemailType[]
                         </Form.Select>
                     </Form.Group>
                 </Col>
-            </Row>
+            </Row> */}
             <Row className='g-3'>
                 <Col>
                     <div
@@ -306,7 +296,7 @@ export default function Voicemails({ voicemails }: { voicemails: VoicemailType[]
                                                         borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
                                                     }}
                                                 >
-                                                    <Actions item={row.original} />
+                                                    <Actions voicemail={row.original} />
                                                 </td>
                                             </tr>
                                         );
@@ -317,6 +307,53 @@ export default function Voicemails({ voicemails }: { voicemails: VoicemailType[]
                     </div>
                 </Col>
             </Row>
-        </div >
+            <Modal show={showRangeModal} onHide={() => setShowRangeModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Select Date Range</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <form id="range-form">
+                        <div className="d-flex gap-3 align-items-center">
+                            <input
+                                type="date"
+                                name="start"
+                                defaultValue={dateRange.start.toISOString().slice(0, 10)}
+                                className="form-control"
+                            />
+                            <span>→</span>
+                            <input
+                                type="date"
+                                name="end"
+                                defaultValue={dateRange.end.toISOString().slice(0, 10)}
+                                className="form-control"
+                            />
+                        </div>
+                    </form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowRangeModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={() => {
+                            const form = document.getElementById("range-form") as HTMLFormElement;
+                            const data = new FormData(form);
+                            function parseLocalDate(value: string) {
+                                const [year, month, day] = value.split("-").map(Number);
+                                return new Date(year, month - 1, day);
+                            }
+                            const start = parseLocalDate(data.get("start") as string);
+                            const end = parseLocalDate(data.get("end") as string);
+                            setDateRange({ start, end });
+                            onDateRangeChange({ start, end });
+                            setShowRangeModal(false);
+                        }}
+                    >
+                        Apply
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
     );
 }

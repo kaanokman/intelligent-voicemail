@@ -1,7 +1,3 @@
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { hasEnvVars } from "@/lib/utils";
-import { Suspense } from "react";
 import ProjectButton from "@/components/ProjectButton";
 import { Row, Col } from "react-bootstrap";
 import { LuHammer } from "react-icons/lu";
@@ -21,31 +17,26 @@ export default function Home() {
                             </div>
                             Forward Deployed Engineer - Project 2
                         </div>
-                        {/* <p className='text-muted font-normal' style={{ fontSize: 20 }}>
-              Below you will find interactive projects I have worked on,
-              all of which have some sort of AI integration that is practical and provides
-              real value.
-            </p> */}
                     </Col>
                 </Row>
                 <Row>
                     {[
                         {
-                            title: 'GitHub', link: 'https://github.com/kaanokman/portfolio', description: `
-                Repository of the app published on GitHUb.
-                ` },
+                            title: 'GitHub', link: 'https://github.com/kaanokman/portfolio',
+                            description: 'Repository of the app published on GitHUb', variant: 'dark'
+                        },
                         {
-                            title: 'Demo', link: '/', description: `
-                Demonstration video of the Dashboard and how its features address the challenge.
-            ` },
+                            title: 'Demo', link: '/', variant: 'bark',
+                            description: 'Demonstration video of the Dashboard and how its features address the challenge'
+                        },
                         {
-                            title: 'Dashboard', link: '/dashboard', description: `
-              The interactive dashbaord to test out the functionality.
-          `},
+                            title: 'Dashboard', link: '/dashboard', variant: 'sunlight',
+                            description: 'The interactive dashboard to test out the functionality'
+                        },
                     ].map((project) =>
                         <Col xs={12} md={4} key={project.title} className='d-flex flex-column gap-3'>
                             <div className='w-100 bg-light rounded border' style={{ aspectRatio: 4 / 3 }} />
-                            <ProjectButton title={project.title} link={project.link} />
+                            <ProjectButton title={project.title} link={project.link} variant={project.variant} />
                             <p className='text-muted text-sm font-normal text-left'>
                                 {project.description}
                             </p>

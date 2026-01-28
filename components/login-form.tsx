@@ -81,7 +81,7 @@ export function LoginForm({
                                 />
                             </div>
                             {error && <p className="text-sm text-red-500">{error}</p>}
-                            <Button type="submit" variant='primary' className="w-full" disabled={isLoading}>
+                            <Button type="submit" variant='sunlight' className="w-full" disabled={isLoading}>
                                 {isLoading ? "Logging in..." : "Log in"}
                             </Button>
                             <div className='align-self-center'>OR</div>
