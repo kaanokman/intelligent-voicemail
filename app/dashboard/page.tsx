@@ -43,7 +43,7 @@ async function getVoicemails(range: Range) {
 
     const { data, error } = await supabase
         .from("voicemails")
-        .select("id, phone_number, patient, transcript_url, audio_url, reason, description, urgency, timestamp, label")
+        .select("id, phone_number, patient, reason, description, urgency, timestamp, label")
         .eq("user_id", user.id)
         .gte("timestamp", range.start)
         .lte("timestamp", range.end)

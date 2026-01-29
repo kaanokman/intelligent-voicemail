@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, Dispatch, SetStateAction, useMemo } from "react";
 import { Button, Modal, Form, Spinner } from "react-bootstrap";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,7 @@ export default function EditModal({ voicemail, show, setShow }: {
     show: boolean;
     setShow: Dispatch<SetStateAction<boolean>>;
 }) {
+    console.log(voicemail)
     const router = useRouter();
     const { register, handleSubmit, reset, control, formState: { errors } } =
         useForm<VoicemailType>({
@@ -33,6 +34,18 @@ export default function EditModal({ voicemail, show, setShow }: {
             shouldFocusError: false
         });
     const [loading, setLoading] = useState(false);
+
+    const urgencyOptions = useMemo(() => [
+        { value: "low", label: "Low" },
+        { value: "medium", label: "Medium" },
+        { value: "high", label: "High" },
+    ], []);
+
+    const labelOptions = useMemo(() => [
+        { value: "new", label: "New" },
+        { value: "processed", label: "Processed" },
+        { value: "junk", label: "Junk" },
+    ], []);
 
     const handleClose = () => {
         setShow(false);
@@ -55,6 +68,7 @@ export default function EditModal({ voicemail, show, setShow }: {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
+                    timestamp: new Date(formData.timestamp).toISOString(),
                     ...(voicemail ? { id: voicemail.id } : {}),
                 })
             });
@@ -112,6 +126,8 @@ export default function EditModal({ voicemail, show, setShow }: {
                     <Form.Group>
                         <Form.Label className='mb-0'>Description</Form.Label>
                         <Form.Control
+                            as='textarea'
+                            rows={4}
                             disabled={loading}
                             {...register("description")}
                         />
@@ -125,16 +141,14 @@ export default function EditModal({ voicemail, show, setShow }: {
                                 render={({ field }) => (
                                     <Select
                                         isDisabled={loading}
-                                        options={[
-                                            { value: "low", label: "Low" },
-                                            { value: "medium", label: "Medium" },
-                                            { value: "high", label: "High" }
-                                        ]}
-                                        onChange={(val) => field.onChange(val)}
-                                        placeholder='Select Urgency'
+                                        options={urgencyOptions}
+                                        value={urgencyOptions.find(o => o.value === field.value) ?? null}
+                                        onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                        placeholder="Select Urgency"
                                         isClearable
                                     />
-                                )} />
+                                )}
+                            />
                         </Form.Group>
                         <Form.Group className='col'>
                             <Form.Label className='mb-0'>Label</Form.Label>
@@ -144,15 +158,13 @@ export default function EditModal({ voicemail, show, setShow }: {
                                 render={({ field }) => (
                                     <Select
                                         isDisabled={loading}
-                                        options={[
-                                            { value: "new", label: "New" },
-                                            { value: "processed", label: "Processed" },
-                                            { value: "junk", label: "Junk" }
-                                        ]}
-                                        onChange={(val) => field.onChange(val)}
-                                        defaultValue={{ value: "new", label: "New" }}
+                                        options={labelOptions}
+                                        value={labelOptions.find(o => o.value === field.value) ?? null}
+                                        onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                        placeholder="Select Label"
                                     />
-                                )} />
+                                )}
+                            />
                         </Form.Group>
                     </div>
                     <Form.Group>
@@ -172,7 +184,7 @@ export default function EditModal({ voicemail, show, setShow }: {
                     <Button variant="secondary" onClick={handleClose} disabled={loading} style={{ width: 80 }}>
                         Cancel
                     </Button>
-                    <Button variant="primary" type="submit" disabled={loading} style={{ width: 80 }}>
+                    <Button variant="primary" type="submit" disabled={loading} style={{ width: 80 }} className='flex justify-center'>
                         {loading ? <Spinner size='sm' /> : 'Submit'}
                     </Button>
                 </Modal.Footer>

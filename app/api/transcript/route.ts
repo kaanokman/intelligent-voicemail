@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { GoogleGenAI } from "@google/genai";
-import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import { VoicemailType } from "@/types/components";
 
 export async function GET(req: Request) {
     try {

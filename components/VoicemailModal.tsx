@@ -2,13 +2,12 @@
 
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { Button, Modal, Form, Spinner } from "react-bootstrap";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { VoicemailFormData } from "@/types/components";
-import Select from 'react-select'
 
 dayjs.extend(customParseFormat);
 
@@ -38,15 +37,16 @@ export default function VoicemailModal({ show, setShow }: {
     }, [show, reset]);
 
     async function handleRequest(formData: VoicemailFormData) {
+        const form = new FormData();
+
+        form.append("phone_number", formData.phone_number);
+        form.append("audio", formData.audio[0]);
+
         setLoading({ status: true, message: "Creating voicemail..." });
-        console.log(formData)
         try {
             const result = await fetch("/api/voicemails", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...formData,
-                })
+                body: form,
             });
             const { message, error } = await result.json();
             if (message) {
@@ -111,7 +111,7 @@ export default function VoicemailModal({ show, setShow }: {
                         Cancel
                     </Button>
                     <Button variant="primary" type="submit" disabled={loading.status} style={{ width: 80 }}
-                        className='flex flex-col gap-2'>
+                        className='flex justify-center'>
                         {loading.status ? <Spinner size='sm' /> : 'Submit'}
                     </Button>
                 </Modal.Footer>

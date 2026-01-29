@@ -5,25 +5,17 @@ import Actions from "@/components/Actions";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 import Table from 'react-bootstrap/Table';
-import { Form } from "react-bootstrap";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
-import { Modal, Button, Dropdown, Tooltip, OverlayTrigger } from "react-bootstrap";
+import { Modal, Button, Dropdown } from "react-bootstrap";
 import {
     useReactTable, getCoreRowModel, getSortedRowModel,
-    flexRender, SortingState, CellContext
+    flexRender, SortingState
 } from "@tanstack/react-table";
-import { PieSeriesType, PieValueType } from "@mui/x-charts";
-import { Spinner } from "react-bootstrap";
-import { FaExclamationTriangle } from "react-icons/fa";
 import { VoicemailType } from "@/types/components";
 import type { ColumnDef } from "@tanstack/react-table";
-import dayjs from "dayjs";
-import { DateTime } from "luxon";
 import { useRouter, useSearchParams } from "next/navigation";
 import AddItem from "@/components/add-item";
 import { Badge } from "react-bootstrap";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const urgencyMap: Record<string, number> = {
     low: 0,
@@ -279,7 +271,7 @@ export default function Voicemails({ voicemails, error, range }: {
                                         return (
                                             <tr
                                                 key={row.id}
-                                                className={(row.original.invalid_columns?.length ?? 0) > 0 ? "table-warning" : ""}
+                                            // className={(row.original.invalid_columns?.length ?? 0) > 0 ? "table-warning" : ""}
                                             >
                                                 {row.getVisibleCells().map((cell, cellIndex) => (
                                                     <td key={cell.id} style={{
