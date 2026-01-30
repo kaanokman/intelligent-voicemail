@@ -235,9 +235,12 @@ export default function Voicemails({ voicemails, error, range }: {
                                             <th
                                                 key={header.id}
                                                 onClick={header.column.getToggleSortingHandler()}
-                                                style={{ cursor: "pointer", borderBottom: "1px solid #dee2e6", borderRight: "1px solid #dee2e6", userSelect: "none" }}
+                                                style={{
+                                                    cursor: "pointer", borderBottom: "1px solid #dee2e6", borderRight: "1px solid #dee2e6", userSelect: "none",
+                                                    minWidth: 150,
+                                                }}
                                             >
-                                                <div className='d-flex align-items-center justify-content-between gap-2'>
+                                                <div className='d-flex align-items-center justify-content-between gap-2 text-nowrap'>
                                                     {flexRender(header.column.columnDef.header, header.getContext())}
                                                     <div style={{ fontSize: "0.65rem", color: "#adb5bd" }}
                                                         className='d-flex flex-column align-items-center'>
@@ -277,8 +280,9 @@ export default function Voicemails({ voicemails, error, range }: {
                                                     <td key={cell.id} style={{
                                                         borderRight: "1px solid #dee2e6",
                                                         borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
+                                                        padding: 0,
                                                     }}>
-                                                        <div>
+                                                        <div className="p-2 custom-scroll" style={{ maxHeight: '88px', overflow: 'auto' }}>
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </div>
                                                     </td>
