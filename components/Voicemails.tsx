@@ -76,6 +76,17 @@ export default function Voicemails({ voicemails, error, range }: {
     // Whether or not to show the custom date range modal
     const [showRangeModal, setShowRangeModal] = useState(false);
 
+    // Date range options for quick selection
+    const dateRangeOptions = useMemo(() => [
+        { label: "Last Day", days: 1 },
+        { label: "Last 3 Days", days: 3 },
+        { label: "Last 7 Days", days: 7 },
+        { label: "Last 2 Weeks", days: 14 },
+        { label: "Last Month", months: 1 },
+        { label: "Last 3 Months", months: 3 },
+        { label: "Last Year", years: 1 },
+    ], []);
+
     // Function to handle dat range change (fetches voicemails from server to client given new range)
     const onDateRangeChange = (range: { start: Date; end: Date }) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -169,21 +180,28 @@ export default function Voicemails({ voicemails, error, range }: {
                             {formatRangeLabel(dateRange.start, dateRange.end)}
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
-                            {[1, 2, 3, 4, 5].map(years => (
+                            {dateRangeOptions.map(({ label, days, months, years }) => (
                                 <Dropdown.Item
-                                    key={years}
+                                    key={label}
                                     onClick={() => {
                                         const end = new Date();
-                                        const start = new Date();
-                                        start.setFullYear(end.getFullYear() - years);
-                                        setDateRange({ start, end });
+                                        const start = new Date(end);
+                                        if (days) {
+                                            start.setDate(end.getDate() - days);
+                                        } else if (months) {
+                                            start.setMonth(end.getMonth() - months);
+                                        } else if (years) {
+                                            start.setFullYear(end.getFullYear() - years);
+                                        }
                                         onDateRangeChange({ start, end });
                                     }}
                                 >
-                                    Last {years} Year{years > 1 && "s"}
+                                    {label}
                                 </Dropdown.Item>
                             ))}
+
                             <Dropdown.Divider />
+
                             <Dropdown.Item onClick={() => setShowRangeModal(true)}>
                                 Custom…
                             </Dropdown.Item>
