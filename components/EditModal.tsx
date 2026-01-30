@@ -23,7 +23,6 @@ export default function EditModal({ voicemail, show, setShow }: {
     show: boolean;
     setShow: Dispatch<SetStateAction<boolean>>;
 }) {
-    console.log(voicemail)
     const router = useRouter();
     const { register, handleSubmit, reset, control, formState: { errors } } =
         useForm<VoicemailType>({

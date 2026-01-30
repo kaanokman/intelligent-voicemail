@@ -5,41 +5,6 @@ import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { createClient as createDeepgramClient } from "@deepgram/sdk";
 
-type Range = { start: string; end: string };
-
-export async function GET(range: Range) {
-    try {
-        // Check for authenticated user
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            console.error("No authenticated user");
-            return NextResponse.json({ error: 'No authenticated user' }, { status: 401 });
-        }
-        // Make request to supabase
-        const { data, error } = await supabase
-            .from("voicemails")
-            .select("id, phone_number, patient, reason, description, urgency, timestamp, label")
-            .eq("user_id", user.id)
-            .gte("timestamp", range.start)
-            .lte("timestamp", range.end)
-            .order("timestamp", { ascending: true });
-        if (error) {
-            console.error("Error getting voicemails: ", error.message);
-            return NextResponse.json({ data: [], error: "Error getting voicemails" }, { status: 400 });
-        }
-        return NextResponse.json({ result: data }, { status: 200 });
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error("Error getting voicemails: ", error.message);
-            return NextResponse.json({ error: "Error getting voicemails" }, { status: 500 });
-        } else {
-            console.error("Unknown error getting voicemails", error);
-            return NextResponse.json({ error: "Unknown error getting voicemails" }, { status: 500 });
-        }
-    }
-}
-
 const voicemailSchema = z.object({
     patient: z.string().nullable().describe("The name of the patient"),
     reason: z.string().nullable().describe("The reason for the voicemail"),

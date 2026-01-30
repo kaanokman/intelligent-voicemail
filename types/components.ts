@@ -2,8 +2,6 @@ export interface VoicemailType {
     id?: number;
     phone_number: string;
     patient: string | null;
-    transcript_url: string | null;
-    audio_url: string | null;
     reason: string | null;
     description: string | null;
     urgency: string | null;
