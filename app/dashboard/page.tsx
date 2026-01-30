@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 import Voicemails from "@/components/Voicemails";
 import { Spinner } from "react-bootstrap";
-import { DateTime } from "luxon";
 import { validateRange } from "./helpers";
 
 type Range = { start: string; end: string };
@@ -40,24 +39,14 @@ export default async function Dashboard({ searchParams }: { searchParams?: Promi
 }
 
 async function VoicemailsPage({ params }: { params?: Promise<{ start?: string; end?: string }> }) {
-    const searchParams = await params;
-
     // Check if params are valid if they exist
-    const validation = validateRange(searchParams?.start, searchParams?.end);
+    const searchParams = await params;
+    const { range, error } = validateRange(searchParams?.start, searchParams?.end);
 
-    let start, end, result;
+    const start = range.start;
+    const end = range.end;
 
-    if (validation.error) {
-        start = validation.range.start;
-        end = validation.range.end;
-        result = { data: [], error: validation.error };
-    } else {
-        // Get start and end time from URL
-        start = searchParams?.start ?? DateTime.now().minus({ days: 7 }).startOf("day").toISO();
-        end = searchParams?.end ?? DateTime.now().endOf("day").toISO();
-        // Get voicemails from DB in time range
-        result = await getVoicemails({ start, end });
-    }
+    const result = error ? { data: [], error } : await getVoicemails({ start, end });
 
     return <Voicemails voicemails={result.data} error={result.error} range={{ start, end }} />;
 }

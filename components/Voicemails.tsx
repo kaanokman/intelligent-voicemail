@@ -79,8 +79,8 @@ export default function Voicemails({ voicemails, error, range }: {
     // Function to handle dat range change (fetches voicemails from server to client given new range)
     const onDateRangeChange = (range: { start: Date; end: Date }) => {
         const params = new URLSearchParams(searchParams.toString());
-        params.set("start", range.start.toISOString());
-        params.set("end", range.end.toISOString());
+        params.set("start", range.start.toISOString().slice(0, 10));
+        params.set("end", range.end.toISOString().slice(0, 10));
         router.replace(`?${params.toString()}`);
         router.refresh();
     };
@@ -161,7 +161,7 @@ export default function Voicemails({ voicemails, error, range }: {
     return (
         <div className="flex flex-col gap-3 w-full">
             <Row>
-                <Col xs sm="auto" className="text-3xl font-semibold">Voicemails</Col>
+                <Col xs sm="auto" className="text-3xl font-semibold flex items-end">Voicemails</Col>
                 <Col xs="auto"><AddItem /></Col>
                 <Col xs='auto' className='ms-auto'>
                     <Dropdown>
