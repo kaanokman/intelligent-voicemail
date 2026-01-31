@@ -43,6 +43,7 @@ export default function EditModal({ voicemail, show, setShow }: {
     const labelOptions = useMemo(() => [
         { value: "new", label: "New" },
         { value: "processed", label: "Processed" },
+        { value: "assigned", label: "Assigned" },
         { value: "junk", label: "Junk" },
     ], []);
 
@@ -116,19 +117,12 @@ export default function EditModal({ voicemail, show, setShow }: {
                         />
                     </Form.Group>
                     <Form.Group>
-                        <Form.Label className='mb-0'>Reason for Call</Form.Label>
-                        <Form.Control
-                            disabled={loading}
-                            {...register("reason")}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label className='mb-0'>Description</Form.Label>
+                        <Form.Label className='mb-0'>Summary</Form.Label>
                         <Form.Control
                             as='textarea'
-                            rows={4}
+                            rows={2}
                             disabled={loading}
-                            {...register("description")}
+                            {...register("reason")}
                         />
                     </Form.Group>
                     <div className='d-flex gap-3'>
@@ -150,7 +144,7 @@ export default function EditModal({ voicemail, show, setShow }: {
                             />
                         </Form.Group>
                         <Form.Group className='col'>
-                            <Form.Label className='mb-0'>Label</Form.Label>
+                            <Form.Label className='mb-0'>Status</Form.Label>
                             <Controller
                                 name="label"
                                 control={control}
@@ -160,12 +154,26 @@ export default function EditModal({ voicemail, show, setShow }: {
                                         options={labelOptions}
                                         value={labelOptions.find(o => o.value === field.value) ?? null}
                                         onChange={(opt) => field.onChange(opt?.value ?? null)}
-                                        placeholder="Select Label"
+                                        placeholder="Select Status"
                                     />
                                 )}
                             />
                         </Form.Group>
                     </div>
+                    <Form.Group>
+                        <Form.Label className='mb-0'>Next Steps</Form.Label>
+                        <Form.Control
+                            disabled={loading}
+                            {...register("suggestion")}
+                        />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label className='mb-0'>Assignee</Form.Label>
+                        <Form.Control
+                            disabled={loading}
+                            {...register("assignee")}
+                        />
+                    </Form.Group>
                     <Form.Group>
                         <Form.Label className='mb-0'>Date & Time</Form.Label>
                         <Form.Control

@@ -7,8 +7,9 @@ import { createClient as createDeepgramClient } from "@deepgram/sdk";
 
 const voicemailSchema = z.object({
     patient: z.string().nullable().describe("The name of the patient"),
-    reason: z.string().nullable().describe("The reason for the voicemail"),
-    description: z.string().nullable().describe("A description of the voicemail content"),
+    reason: z.string().nullable().describe("The reason for the voicemail and short summary of content"),
+    suggestion: z.enum(["Call patient back", "Schedule appointment", "Send follow-up email", "Forward to doctor"]).nullable()
+        .describe("Recommended next steps for the voicemail"),
     urgency: z.enum(["low", "medium", "high"]).nullable().describe("The urgency level of the voicemail"),
 });
 
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
             phone_number,
             user_id: user.id,
             label: 'new',
+            assignee: null,
         }
 
         // Log final voicemail object

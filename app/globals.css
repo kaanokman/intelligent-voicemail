@@ -176,3 +176,21 @@
     background: #ced4da;
     border-radius: 2px;
 }
+
+.clear-button:hover {
+    color: #333;
+    cursor: default;
+}
+
+.none-button {
+    opacity: 0.75 !important;
+}
+
+.none-button:hover,
+.none-button:active {
+    opacity: 1 !important;
+}
+
+.custom-dropdown.show .dropdown-toggle {
+    opacity: 1 !important;
+}

@@ -15,7 +15,9 @@ import { VoicemailType } from "@/types/components";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useRouter, useSearchParams } from "next/navigation";
 import AddItem from "@/components/add-item";
-import { Badge } from "react-bootstrap";
+import { FaGripLines, FaChevronUp, FaChevronDown } from "react-icons/fa6";
+import { IoClose } from "react-icons/io5";
+import { FaUserGroup } from "react-icons/fa6";
 
 const urgencyMap: Record<string, number> = {
     low: 0,
@@ -30,34 +32,85 @@ const toastSettings = {
     pauseOnHover: true,
 };
 
-const LabelBadge = ({ label }: { label: VoicemailType["label"] }) => {
-    // Bootstrap supports bg + text, but not "outline" badges by default,
-    // so we simulate outline with border + transparent bg.
-    const getClass = (label: VoicemailType["label"]) => {
-        if (label === 'new') {
-            return "border-danger text-danger";
-        }
-        if (label === 'processed') {
-            return "border-success text-success";
-        }
-        if (label === 'junk') {
-            return "border-bark text-bark";
-        }
-        return "border-secondary text-secondary";
-    };
-
-    return (
-        <Badge
-            className={`bg-transparent border ${getClass(label)}`}
-            style={{ fontWeight: 600 }}
-        >
-            {label.toUpperCase()}
-        </Badge>
-    );
-};
-
 type RangeISO = { start: string; end: string };
 type RangeDate = { start: Date; end: Date };
+
+function LabelCell(props: {
+    className?: string;
+    isClearable?: boolean;
+    id: number; field: string; initialOption: string | null; options: string[];
+    onUpdate: (form: Partial<VoicemailType>, id: number) => Promise<void>;
+}) {
+    const [loading, setLoading] = useState(false);
+    const [selectedOption, setSelectedOption] = useState(props.initialOption);
+    const [open, setOpen] = useState(false);
+
+    const variant = props.className ? undefined :
+        selectedOption === "new"
+            ? "outline-danger"
+            : selectedOption === "assigned"
+                ? "outline-primary"
+                : selectedOption === "processed"
+                    ? "outline-success"
+                    : selectedOption === "junk"
+                        ? "outline-bark"
+                        : "outline-secondary";
+
+    return (
+        <Dropdown className="position-absolute custom-dropdown" show={open} onToggle={(nextOpen) => setOpen(nextOpen)}>
+            <Dropdown.Toggle
+                className={`flex items-center gap-1 ${!selectedOption ? 'none-button' : ''}
+                ${props.className || ''}`}
+                style={{ padding: "0.1rem 0.5rem", borderRadius: "6px" }}
+                variant={variant}
+                disabled={loading}
+            >
+                {loading ? "Updating…" : selectedOption ?
+                    (<div className='flex items-center gap-2'>
+                        {selectedOption.toUpperCase()}
+                        {props.isClearable &&
+                            <div className='clear-button' onClick={async (e) => {
+                                e.stopPropagation();
+                                setLoading(true);
+                                setOpen(false);
+                                try {
+                                    await props.onUpdate({ [props.field]: null }, props.id);
+                                } finally {
+                                    setSelectedOption(null);
+                                    setLoading(false);
+                                }
+                            }}>
+                                <IoClose />
+                            </div>
+                        }
+                    </div>
+                    ) : 'None'}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+                {props.options.filter(option => option !== props.initialOption).map((option) => (
+                    <Dropdown.Item
+                        key={option}
+                        style={{ padding: "0.2rem 0.6rem", fontSize: "14px" }}
+                        disabled={loading}
+                        onClick={async () => {
+                            setLoading(true);
+                            setOpen(false);
+                            try {
+                                await props.onUpdate({ [props.field]: option }, props.id);
+                            } finally {
+                                setSelectedOption(option);
+                                setLoading(false);
+                            }
+                        }}
+                    >
+                        {option.toUpperCase()}
+                    </Dropdown.Item>
+                ))}
+            </Dropdown.Menu>
+        </Dropdown>
+    );
+}
+
 
 export default function Voicemails({ voicemails, error, range }: {
     voicemails: VoicemailType[];
@@ -75,6 +128,15 @@ export default function Voicemails({ voicemails, error, range }: {
     }));
     // Whether or not to show the custom date range modal
     const [showRangeModal, setShowRangeModal] = useState(false);
+
+    const teamMembers = useMemo(() => {
+        return [
+            { name: "Alice" },
+            { name: "Bob" },
+            { name: "Charlie" },
+            { name: "Diana" },
+        ];
+    }, [])
 
     // Date range options for quick selection
     const dateRangeOptions = useMemo(() => [
@@ -96,6 +158,27 @@ export default function Voicemails({ voicemails, error, range }: {
         router.refresh();
     };
 
+    const updateVoicemail = useCallback(async (form: Partial<VoicemailType>, id: number) => {
+        try {
+            const result = await fetch("/api/voicemails", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...form, id })
+            });
+            const { message, error } = await result.json();
+            if (message) {
+                router.refresh();
+                toast.success('Updated voicemail', toastSettings);
+            } else if (error) {
+                toast.error(`Error updating voicemail`, toastSettings);
+            }
+        } catch (error) {
+            let errorMsg;
+            if (error instanceof Error) errorMsg = error.message;
+            toast.error(errorMsg || 'Error updating voicemail', toastSettings);
+        }
+    }, []);
+
     // Hook to convert date range to date object on router refresh
     useEffect(() => {
         setDateRange({ start: new Date(range.start), end: new Date(range.end) });
@@ -113,12 +196,22 @@ export default function Voicemails({ voicemails, error, range }: {
         }).format(new Date(timestamp));
     }, []);
 
+    const fallback = <span className='text-muted opacity-50'>None</span>;
+
     // Columns for voicemails table
     const columnDefs = useMemo<ColumnDef<VoicemailType, any>[]>(() => [
-        { accessorKey: "phone_number", header: "Phone", sortDescFirst: true },
-        { accessorKey: "patient", header: "Patient", sortDescFirst: true },
-        { accessorKey: "reason", header: "Reason for Call", sortDescFirst: true },
-        { accessorKey: "description", header: "Description", sortDescFirst: true },
+        {
+            accessorKey: "phone_number", header: "Phone", sortDescFirst: true,
+            cell: ({ getValue }) => getValue() || fallback
+        },
+        {
+            accessorKey: "patient", header: "Patient", sortDescFirst: true,
+            cell: ({ getValue }) => getValue() || fallback
+        },
+        {
+            accessorKey: "reason", header: "Summary", sortDescFirst: true,
+            cell: ({ getValue }) => getValue() || fallback
+        },
         {
             accessorKey: "urgency", header: "Urgency", sortDescFirst: true,
             sortingFn: (a, b, id) => {
@@ -126,13 +219,37 @@ export default function Voicemails({ voicemails, error, range }: {
                 const bVal = urgencyMap[b.getValue(id) as string] ?? -1;
                 return aVal - bVal;
             },
+            cell: ({ getValue }) => {
+                if (getValue() === 'high') {
+                    return <div className='flex items-center gap-2'><FaChevronUp color='red' />High</div>;
+                } else if (getValue() === 'medium') {
+                    return <div className='flex items-center gap-2'><FaGripLines color='orange' />Medium</div>;
+                } else if (getValue() === 'low') {
+                    return <div className='flex items-center gap-2'><FaChevronDown color='blue' />Low</div>;
+                }
+                return getValue() || fallback;
+            },
         },
         {
             accessorKey: "label",
-            header: "Label",
-            cell: ({ getValue }) => (
-                <LabelBadge label={getValue() as VoicemailType["label"]} />
+            header: "Status",
+            cell: ({ row }) => (
+                <LabelCell id={Number(row.original.id)} field="label" initialOption={row.original.label} onUpdate={updateVoicemail}
+                    options={["new", "assigned", "processed", "junk"]} />
             ),
+            sortDescFirst: true
+        },
+        {
+            accessorKey: "suggestion", header: "Next Steps", sortDescFirst: true,
+            cell: ({ getValue }) => getValue() || fallback
+        },
+        {
+            accessorKey: "assignee",
+            header: "Assignee",
+            cell: ({ row }) =>
+                <LabelCell id={Number(row.original.id)} field="assignee" initialOption={row.original.assignee} onUpdate={updateVoicemail}
+                    options={teamMembers.map(m => m.name)} isClearable className='bg-transparent border-secondary text-secondary' />,
+            sortDescFirst: true
         },
         {
             accessorKey: "timestamp",
@@ -140,8 +257,9 @@ export default function Voicemails({ voicemails, error, range }: {
             sortingFn: (a, b, id) =>
                 new Date(a.getValue(id) as string).getTime() - new Date(b.getValue(id) as string).getTime(),
             cell: ({ getValue }) => formatTimestamp(getValue() as string),
+            sortDescFirst: true
         },
-    ], [formatTimestamp]);
+    ], [formatTimestamp, teamMembers]);
 
     // Voicemails that are currently loaded in from the server to the client, filtered on the front-end by user
     const filteredVoicemails = useMemo(() => {
@@ -169,12 +287,36 @@ export default function Voicemails({ voicemails, error, range }: {
         getSortedRowModel: getSortedRowModel(),
     });
 
+    const [showModal, setShowModal] = useState(false);
+
     return (
         <div className="flex flex-col gap-3 w-full">
             <Row>
                 <Col xs sm="auto" className="text-3xl font-semibold flex items-end">Voicemails</Col>
                 <Col xs="auto"><AddItem /></Col>
                 <Col xs='auto' className='ms-auto'>
+                    <Button variant="oak" className='flex items-center gap-2' onClick={() => setShowModal(true)}>
+                        <FaUserGroup /> Team
+                    </Button>
+                    <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Team Members</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <p>Team management functionality coming soon!</p>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                Close
+                            </Button>
+                            <Button variant="primary" onClick={() => setShowModal(false)}>
+                                Save
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                </Col>
+                <Col xs='auto'>
                     <Dropdown>
                         <Dropdown.Toggle variant="outline-bark" className="w-100 text-start">
                             {formatRangeLabel(dateRange.start, dateRange.end)}
@@ -300,7 +442,11 @@ export default function Voicemails({ voicemails, error, range }: {
                                                         borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
                                                         padding: 0,
                                                     }}>
-                                                        <div className="p-2 custom-scroll" style={{ maxHeight: '88px', overflow: 'auto' }}>
+                                                        <div className="p-2 custom-scroll" style={['reason'].includes(cell.column.id) ?
+                                                            { maxHeight: '88px', overflow: 'auto' } : {
+                                                                overflow: 'visible',
+                                                                zIndex: 99
+                                                            }}>
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </div>
                                                     </td>
