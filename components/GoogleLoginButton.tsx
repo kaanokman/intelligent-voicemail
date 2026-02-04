@@ -41,7 +41,7 @@ export default function GoogleLoginButton() {
     return (ready ?
         <div className='google-login-wrapper'>
             <GoogleLogin
-                width={350}
+                width={'100%'}
                 onSuccess={(credentialResponse) => { void handleSignInWithGoogle(credentialResponse); }}
                 onError={() => {
                     console.log('Login Failed');
