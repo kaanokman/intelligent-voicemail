@@ -29,11 +29,6 @@ const geistSans = Geist({
     subsets: ["latin"],
 });
 
-const inter = Inter({
-    subsets: ["latin"],
-    variable: "--font-inter", // optional but recommended
-});
-
 export default function RootLayout({
     children,
 }: Readonly<{

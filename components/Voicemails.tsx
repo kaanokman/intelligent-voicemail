@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 import Table from 'react-bootstrap/Table';
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
-import { Modal, Button, Dropdown } from "react-bootstrap";
+import { Modal, Button, Dropdown, Form } from "react-bootstrap";
 import {
     useReactTable, getCoreRowModel, getSortedRowModel,
     flexRender, SortingState
@@ -17,7 +17,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import AddItem from "@/components/add-item";
 import { FaGripLines, FaChevronUp, FaChevronDown } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
-import { FaUserGroup } from "react-icons/fa6";
+import Select from 'react-select';
+import { Controller, useForm } from "react-hook-form";
 
 const urgencyMap: Record<string, number> = {
     low: 0,
@@ -45,6 +46,10 @@ function LabelCell(props: {
     const [selectedOption, setSelectedOption] = useState(props.initialOption);
     const [open, setOpen] = useState(false);
 
+    useEffect(() => {
+        setSelectedOption(props.initialOption);
+    }, [props.initialOption, props.id]);
+
     const variant = props.className ? undefined :
         selectedOption === "new"
             ? "outline-danger"
@@ -57,7 +62,7 @@ function LabelCell(props: {
                         : "outline-secondary";
 
     return (
-        <Dropdown className="position-absolute custom-dropdown" show={open} onToggle={(nextOpen) => setOpen(nextOpen)}>
+        <Dropdown className="custom-dropdown" show={open} onToggle={(nextOpen) => setOpen(nextOpen)}>
             <Dropdown.Toggle
                 className={`flex items-center gap-1 ${!selectedOption ? 'none-button' : ''}
                 ${props.className || ''}`}
@@ -87,12 +92,13 @@ function LabelCell(props: {
                     ) : 'None'}
             </Dropdown.Toggle>
             <Dropdown.Menu>
-                {props.options.filter(option => option !== props.initialOption).map((option) => (
+                {props.options.map((option) => (
                     <Dropdown.Item
                         key={option}
                         style={{ padding: "0.2rem 0.6rem", fontSize: "14px" }}
                         disabled={loading}
                         onClick={async () => {
+                            if (option === selectedOption) return;
                             setLoading(true);
                             setOpen(false);
                             try {
@@ -119,8 +125,15 @@ export default function Voicemails({ voicemails, error, range }: {
 }) {
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const { watch, control } = useForm();
+
+    const urgency = watch("urgency");
+    const status = watch("status");
+    const nextSteps = watch("nextSteps");
+
     // Sorting state for the voicemails table
-    const [sorting, setSorting] = useState<SortingState>([{ id: "timestamp", desc: true }]);
+    const [sorting, setSorting] = useState<SortingState>([{ id: "timestamp", desc: false }]);
     // Current date range for which to load voicemails into client from server
     const [dateRange, setDateRange] = useState<RangeDate>(() => ({
         start: new Date(range.start),
@@ -128,15 +141,6 @@ export default function Voicemails({ voicemails, error, range }: {
     }));
     // Whether or not to show the custom date range modal
     const [showRangeModal, setShowRangeModal] = useState(false);
-
-    const teamMembers = useMemo(() => {
-        return [
-            { name: "Alice" },
-            { name: "Bob" },
-            { name: "Charlie" },
-            { name: "Diana" },
-        ];
-    }, [])
 
     // Date range options for quick selection
     const dateRangeOptions = useMemo(() => [
@@ -147,6 +151,26 @@ export default function Voicemails({ voicemails, error, range }: {
         { label: "Last Month", months: 1 },
         { label: "Last 3 Months", months: 3 },
         { label: "Last Year", years: 1 },
+    ], []);
+
+    const urgencyOptions = useMemo(() => [
+        { value: "low", label: "Low" },
+        { value: "medium", label: "Medium" },
+        { value: "high", label: "High" },
+    ], []);
+
+    const statusOptions = useMemo(() => [
+        { value: "new", label: "New" },
+        { value: "processed", label: "Processed" },
+        { value: "assigned", label: "Assigned" },
+        { value: "junk", label: "Junk" },
+    ], []);
+
+    const nextStepsOptions = useMemo(() => [
+        { value: "Call patient back", label: "Call patient back" },
+        { value: "Schedule appointment", label: "Schedule appointment" },
+        { value: "Send follow-up email", label: "Send follow-up email" },
+        { value: "Forward to doctor", label: "Forward to doctor" },
     ], []);
 
     // Function to handle dat range change (fetches voicemails from server to client given new range)
@@ -192,7 +216,7 @@ export default function Voicemails({ voicemails, error, range }: {
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
-            hour12: false,
+            hour12: true,
         }).format(new Date(timestamp));
     }, []);
 
@@ -231,10 +255,10 @@ export default function Voicemails({ voicemails, error, range }: {
             },
         },
         {
-            accessorKey: "label",
+            accessorKey: "status",
             header: "Status",
             cell: ({ row }) => (
-                <LabelCell id={Number(row.original.id)} field="label" initialOption={row.original.label} onUpdate={updateVoicemail}
+                <LabelCell id={Number(row.original.id)} field="status" initialOption={row.original.status} onUpdate={updateVoicemail}
                     options={["new", "assigned", "processed", "junk"]} />
             ),
             sortDescFirst: true
@@ -244,14 +268,6 @@ export default function Voicemails({ voicemails, error, range }: {
             cell: ({ getValue }) => getValue() || fallback
         },
         {
-            accessorKey: "assignee",
-            header: "Assignee",
-            cell: ({ row }) =>
-                <LabelCell id={Number(row.original.id)} field="assignee" initialOption={row.original.assignee} onUpdate={updateVoicemail}
-                    options={teamMembers.map(m => m.name)} isClearable className='bg-transparent border-secondary text-secondary' />,
-            sortDescFirst: true
-        },
-        {
             accessorKey: "timestamp",
             header: "Date & Time",
             sortingFn: (a, b, id) =>
@@ -259,12 +275,17 @@ export default function Voicemails({ voicemails, error, range }: {
             cell: ({ getValue }) => formatTimestamp(getValue() as string),
             sortDescFirst: true
         },
-    ], [formatTimestamp, teamMembers]);
+    ], [formatTimestamp]);
 
     // Voicemails that are currently loaded in from the server to the client, filtered on the front-end by user
     const filteredVoicemails = useMemo(() => {
-        return voicemails;
-    }, [voicemails])
+        return voicemails.filter(v => {
+            if (urgency && v.urgency !== urgency) return false;
+            if (status && v.status !== status) return false;
+            if (nextSteps && v.suggestion !== nextSteps) return false;
+            return true;
+        });
+    }, [voicemails, urgency, status, nextSteps]);
 
     // Displays error if voicemails failed to load from server
     useEffect(() => {
@@ -285,9 +306,8 @@ export default function Voicemails({ voicemails, error, range }: {
         onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        getRowId: (row) => String(row.id),
     });
-
-    const [showModal, setShowModal] = useState(false);
 
     return (
         <div className="flex flex-col gap-3 w-full">
@@ -295,28 +315,6 @@ export default function Voicemails({ voicemails, error, range }: {
                 <Col xs sm="auto" className="text-3xl font-semibold flex items-end">Voicemails</Col>
                 <Col xs="auto"><AddItem /></Col>
                 <Col xs='auto' className='ms-auto'>
-                    <Button variant="oak" className='flex items-center gap-2' onClick={() => setShowModal(true)}>
-                        <FaUserGroup /> Team
-                    </Button>
-                    <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-                        <Modal.Header closeButton>
-                            <Modal.Title>Team Members</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <p>Team management functionality coming soon!</p>
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={() => setShowModal(false)}>
-                                Close
-                            </Button>
-                            <Button variant="primary" onClick={() => setShowModal(false)}>
-                                Save
-                            </Button>
-                        </Modal.Footer>
-                    </Modal>
-
-                </Col>
-                <Col xs='auto'>
                     <Dropdown>
                         <Dropdown.Toggle variant="outline-bark" className="w-100 text-start">
                             {formatRangeLabel(dateRange.start, dateRange.end)}
@@ -341,9 +339,7 @@ export default function Voicemails({ voicemails, error, range }: {
                                     {label}
                                 </Dropdown.Item>
                             ))}
-
                             <Dropdown.Divider />
-
                             <Dropdown.Item onClick={() => setShowRangeModal(true)}>
                                 Custom…
                             </Dropdown.Item>
@@ -351,24 +347,71 @@ export default function Voicemails({ voicemails, error, range }: {
                     </Dropdown>
                 </Col>
             </Row>
-            {/* <Row>
-                <Col xs md={4}>
-                    <Form.Group>
-                        <Form.Label className='mb-1'>Property</Form.Label>
-                        <Form.Select
-                            style={{ maxWidth: '500px' }}
-                            onChange={(e) => setSelectedCompany(e.target.value)}
-                        >
-                            <option value={""}>All</option>
-                            {['low', 'medium', 'high'].map((urgency: string) => (
-                                <option key={urgency} value={urgency}>
-                                    {urgency}
-                                </option>
-                            ))}
-                        </Form.Select>
+            <Row className='g-3'>
+                <Col xs md={3}>
+                    <Form.Group className='col'>
+                        <Form.Label className='mb-0'>Urgency</Form.Label>
+                        <Controller
+                            name="urgency"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    instanceId="urgency"
+                                    inputId="urgency"
+                                    styles={{ menu: (base) => ({ ...base, zIndex: 5 }) }}
+                                    options={urgencyOptions}
+                                    value={urgencyOptions.find(o => o.value === field.value) ?? null}
+                                    onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                    placeholder="All"
+                                    isClearable
+                                />
+                            )}
+                        />
                     </Form.Group>
                 </Col>
-            </Row> */}
+                <Col xs md={3}>
+                    <Form.Group className='col'>
+                        <Form.Label className='mb-0'>Status</Form.Label>
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    instanceId="status"
+                                    inputId="status"
+                                    styles={{ menu: (base) => ({ ...base, zIndex: 5 }) }}
+                                    options={statusOptions}
+                                    value={statusOptions.find(o => o.value === field.value) ?? null}
+                                    onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                    placeholder="All"
+                                    isClearable
+                                />
+                            )}
+                        />
+                    </Form.Group>
+                </Col>
+                <Col xs md={3}>
+                    <Form.Group className='col'>
+                        <Form.Label className='mb-0'>Next Steps</Form.Label>
+                        <Controller
+                            name="nextSteps"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    instanceId="nextSteps"
+                                    inputId="nextSteps"
+                                    styles={{ menu: (base) => ({ ...base, zIndex: 5 }) }}
+                                    options={nextStepsOptions}
+                                    value={nextStepsOptions.find(o => o.value === field.value) ?? null}
+                                    onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                    placeholder="All"
+                                    isClearable
+                                />
+                            )}
+                        />
+                    </Form.Group>
+                </Col>
+            </Row>
             <Row className='g-3'>
                 <Col>
                     <div
@@ -386,6 +429,7 @@ export default function Voicemails({ voicemails, error, range }: {
                                 borderCollapse: "separate",
                                 borderSpacing: 0,
                                 marginBottom: 0,
+                                position: 'relative'
                             }}
                         >
                             <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "white" }}>
@@ -397,7 +441,7 @@ export default function Voicemails({ voicemails, error, range }: {
                                                 onClick={header.column.getToggleSortingHandler()}
                                                 style={{
                                                     cursor: "pointer", borderBottom: "1px solid #dee2e6", borderRight: "1px solid #dee2e6", userSelect: "none",
-                                                    minWidth: 150,
+                                                    minWidth: 135,
                                                 }}
                                             >
                                                 <div className='d-flex align-items-center justify-content-between gap-2 text-nowrap'>
@@ -432,10 +476,7 @@ export default function Voicemails({ voicemails, error, range }: {
                                     table.getRowModel().rows.map((row, rowIndex) => {
                                         const isLastRow = rowIndex === table.getRowModel().rows.length - 1;
                                         return (
-                                            <tr
-                                                key={row.id}
-                                            // className={(row.original.invalid_columns?.length ?? 0) > 0 ? "table-warning" : ""}
-                                            >
+                                            <tr key={row.id}>
                                                 {row.getVisibleCells().map((cell, cellIndex) => (
                                                     <td key={cell.id} style={{
                                                         borderRight: "1px solid #dee2e6",
@@ -443,10 +484,7 @@ export default function Voicemails({ voicemails, error, range }: {
                                                         padding: 0,
                                                     }}>
                                                         <div className="p-2 custom-scroll" style={['reason'].includes(cell.column.id) ?
-                                                            { maxHeight: '88px', overflow: 'auto' } : {
-                                                                overflow: 'visible',
-                                                                zIndex: 99
-                                                            }}>
+                                                            { maxHeight: '88px', overflow: 'auto' } : { overflow: 'visible', zIndex: 0 }}>
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </div>
                                                     </td>

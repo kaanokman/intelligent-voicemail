@@ -30,7 +30,7 @@ export default function GoogleLoginButton() {
             });
             if (error) throw error;
 
-            // refresh first so server components update, then navigate
+            // Refresh first so server components update, then navigate
             router.replace("/dashboard");
             router.refresh();
         } catch (err) {
@@ -40,6 +40,7 @@ export default function GoogleLoginButton() {
 
     return (ready ?
         <GoogleLogin
+            width={'100%'}
             onSuccess={(credentialResponse) => { void handleSignInWithGoogle(credentialResponse); }}
             onError={() => {
                 console.log('Login Failed');

@@ -40,11 +40,18 @@ export default function EditModal({ voicemail, show, setShow }: {
         { value: "high", label: "High" },
     ], []);
 
-    const labelOptions = useMemo(() => [
+    const statusOptions = useMemo(() => [
         { value: "new", label: "New" },
         { value: "processed", label: "Processed" },
         { value: "assigned", label: "Assigned" },
         { value: "junk", label: "Junk" },
+    ], []);
+
+    const nextStepsOptions = useMemo(() => [
+        { value: "Call patient back", label: "Call patient back" },
+        { value: "Schedule appointment", label: "Schedule appointment" },
+        { value: "Send follow-up email", label: "Send follow-up email" },
+        { value: "Forward to doctor", label: "Forward to doctor" },
     ], []);
 
     const handleClose = () => {
@@ -146,13 +153,13 @@ export default function EditModal({ voicemail, show, setShow }: {
                         <Form.Group className='col'>
                             <Form.Label className='mb-0'>Status</Form.Label>
                             <Controller
-                                name="label"
+                                name="status"
                                 control={control}
                                 render={({ field }) => (
                                     <Select
                                         isDisabled={loading}
-                                        options={labelOptions}
-                                        value={labelOptions.find(o => o.value === field.value) ?? null}
+                                        options={statusOptions}
+                                        value={statusOptions.find(o => o.value === field.value) ?? null}
                                         onChange={(opt) => field.onChange(opt?.value ?? null)}
                                         placeholder="Select Status"
                                     />
@@ -160,18 +167,24 @@ export default function EditModal({ voicemail, show, setShow }: {
                             />
                         </Form.Group>
                     </div>
-                    <Form.Group>
+                    <Form.Group className='col'>
                         <Form.Label className='mb-0'>Next Steps</Form.Label>
-                        <Form.Control
-                            disabled={loading}
-                            {...register("suggestion")}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label className='mb-0'>Assignee</Form.Label>
-                        <Form.Control
-                            disabled={loading}
-                            {...register("assignee")}
+                        <Controller
+                            name="suggestion"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    isDisabled={loading}
+                                    instanceId="suggestion"
+                                    inputId="suggestion"
+                                    styles={{ menu: (base) => ({ ...base, zIndex: 5 }) }}
+                                    options={nextStepsOptions}
+                                    value={nextStepsOptions.find(o => o.value === field.value) ?? null}
+                                    onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                    placeholder="Select Next Steps"
+                                    isClearable
+                                />
+                            )}
                         />
                     </Form.Group>
                     <Form.Group>

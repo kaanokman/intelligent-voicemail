@@ -3,11 +3,10 @@ export interface VoicemailType {
     phone_number: string;
     patient: string | null;
     reason: string | null;
-    assignee: string | null;
     suggestion: string | null;
     urgency: string | null;
     timestamp: string; // timestamptz → ISO string
-    label: string;
+    status: string;
 }
 
 export type VoicemailFormData = {

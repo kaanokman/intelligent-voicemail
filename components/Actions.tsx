@@ -10,7 +10,6 @@ import ConfirmationModal from "./confirmation-modal";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { VoicemailType } from "@/types/components";
-import { FaRegCirclePlay } from "react-icons/fa6";
 import { CgFileDocument } from "react-icons/cg";
 
 const toastSettings = {
@@ -60,7 +59,7 @@ export default function Actions({ voicemail }: { voicemail: VoicemailType }) {
 
     return (
         <>
-            <div className='d-flex gap-2'>
+            <div className='d-flex gap-1'>
                 <OverlayTrigger trigger={['hover', 'hover']} overlay={<Tooltip>
                     View Transcript
                 </Tooltip>}>
@@ -79,15 +78,6 @@ export default function Actions({ voicemail }: { voicemail: VoicemailType }) {
                         <FaEdit size={18} style={{ marginLeft: '2px' }} />
                     </Button>
                 </OverlayTrigger>
-                {/* <OverlayTrigger trigger={['hover', 'hover']} overlay={<Tooltip>
-                    Play Audio
-                </Tooltip>}>
-                    <Button variant='outline-success' onClick={() => setShow(true)}
-                        style={{ height: 36, width: 36 }}
-                        className='p-0 d-flex justify-content-center align-items-center'>
-                        <FaRegCirclePlay size={18} />
-                    </Button>
-                </OverlayTrigger> */}
                 <OverlayTrigger trigger={['hover', 'hover']} overlay={<Tooltip>
                     Delete
                 </Tooltip>}>

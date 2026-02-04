@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { Button, Modal, Form, Spinner } from "react-bootstrap";
+import { useState, useEffect, Dispatch, SetStateAction, useRef } from "react";
+import { Button, Modal, Form, Spinner, ToggleButtonGroup, ToggleButton } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import { VoicemailFormData } from "@/types/components";
-
-dayjs.extend(customParseFormat);
+import { AudioRecorder, type RecordedAudio } from "./AudioRecorder";
 
 const toastSettings = {
     autoClose: 5000,
@@ -22,14 +19,18 @@ export default function VoicemailModal({ show, setShow }: {
     setShow: Dispatch<SetStateAction<boolean>>;
 }) {
     const router = useRouter();
-    const { register, handleSubmit, reset, control, formState: { errors } } =
+    const { register, handleSubmit, reset, setValue, formState: { errors } } =
         useForm<VoicemailFormData>({ shouldFocusError: false });
     const [loading, setLoading] = useState({ status: false } as { status: boolean, message?: string });
+    const [audioSource, setAudioSource] = useState<"upload" | "record">("record");
+    const [audio, setAudio] = useState<RecordedAudio | null>(null);
 
     const handleClose = () => {
         setShow(false);
         reset();
         setLoading({ status: false });
+        setAudio(null);
+        setAudioSource("record");
     };
 
     useEffect(() => {
@@ -40,7 +41,21 @@ export default function VoicemailModal({ show, setShow }: {
         const form = new FormData();
 
         form.append("phone_number", formData.phone_number);
-        form.append("audio", formData.audio[0]);
+
+        if (audioSource === "upload") {
+            const file = formData.audio?.[0];
+            if (!file) {
+                toast.error("Please record or upload an audio file", toastSettings);
+                return;
+            }
+            form.append("audio", file);
+        } else {
+            if (!audio) {
+                toast.error("Please record or upload an audio file", toastSettings);
+                return;
+            }
+            form.append("audio", new File([audio.blob], "recording.webm", { type: audio.mimeType }));
+        }
 
         setLoading({ status: true, message: "Creating voicemail..." });
         try {
@@ -54,7 +69,7 @@ export default function VoicemailModal({ show, setShow }: {
                 router.refresh();
                 toast.success('Created voicemail', toastSettings);
             } else if (error) {
-                toast.error('Error creating voicemail', toastSettings);
+                toast.error(error, toastSettings);
             }
         } catch (error) {
             let errorMsg;
@@ -73,9 +88,9 @@ export default function VoicemailModal({ show, setShow }: {
                         Add Voicemail
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="d-flex flex-column gap-3 p-4 pt-3">
+                <Modal.Body className="d-flex flex-column gap-3 p-4">
                     {loading.status ?
-                        <div className="flex items-center justify-center flex-col gap-2" style={{ height: 140 }}>
+                        <div className="flex items-center justify-center flex-col gap-2" style={{ height: audioSource === 'upload' ? 194 : 240 }}>
                             <Spinner animation="border" />
                             {loading.message}
                         </div> : <>
@@ -90,19 +105,48 @@ export default function VoicemailModal({ show, setShow }: {
                                     {errors.phone_number?.message && String(errors.phone_number.message)}
                                 </Form.Control.Feedback>
                             </Form.Group>
-                            <Form.Group>
-                                <Form.Label className='mb-0'>Audio</Form.Label>
-                                <Form.Control
-                                    type="file"
-                                    accept="audio/*"
-                                    disabled={loading.status}
-                                    {...register("audio", { required: 'Audio is required' })}
-                                    isInvalid={!!errors.audio}
-                                />
-                                <Form.Control.Feedback type="invalid" className='position-absolute text-xs mt-0'>
-                                    {errors.audio?.message && String(errors.audio.message)}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                            <ToggleButtonGroup type="radio" name="audioSource" defaultValue='record'
+                                onChange={(value: "upload" | "record") => setAudioSource(value)}>
+                                <ToggleButton id="record" value='record' disabled={loading.status}
+                                    variant="outline-oak"
+                                    onClick={() => {
+                                        setAudioSource("record");
+                                        setValue("audio", undefined as any);
+                                    }}>
+                                    Record
+                                </ToggleButton>
+                                <ToggleButton id="upload" value='upload' disabled={loading.status}
+                                    variant="outline-oak"
+                                    onClick={() => {
+                                        setAudioSource("upload");
+                                        setAudio(null);
+                                    }}>
+                                    Upload
+                                </ToggleButton>
+                            </ToggleButtonGroup>
+                            {audioSource === "record" ?
+                                <Form.Group>
+                                    <Form.Label className='mb-0'>Record Audio</Form.Label>
+                                    <AudioRecorder
+                                        value={audio}
+                                        onChange={(next) => setAudio(next)}
+                                        disabled={loading.status}
+                                    />
+                                </Form.Group> :
+                                <Form.Group>
+                                    <Form.Label className='mb-0'>Upload Audio</Form.Label>
+                                    <Form.Control
+                                        type="file"
+                                        accept="audio/*"
+                                        disabled={loading.status}
+                                        {...register("audio", { required: 'Audio upload or recording is required' })}
+                                        isInvalid={!!errors.audio}
+                                    />
+                                    <Form.Control.Feedback type="invalid" className='position-absolute text-xs mt-0'>
+                                        {errors.audio?.message && String(errors.audio.message)}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            }
                         </>
                     }
                 </Modal.Body>

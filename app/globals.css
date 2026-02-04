@@ -78,7 +78,7 @@
     }
 }
 
-/* custom list group styling */
+/* Custom list group styling */
 .list-group-item.active {
     background-color: #fbf58222 !important;
     border-color: #ecd7c6 !important;
@@ -141,13 +141,15 @@
 
 /* React-Bootstrap inputs + selects */
 .form-control,
-.form-select {
+.form-select,
+.audioBox {
     border: 1px solid var(--rs-border) !important;
 }
 
 /* Hover border like react-select */
 .form-control:hover,
-.form-select:hover {
+.form-select:hover,
+.audioBox:hover {
     border-color: var(--rs-border-hover) !important;
 }
 
@@ -161,6 +163,7 @@
 .form-select:disabled {
     background-color: #f2f2f2 !important;
     border-color: #e6e6e6 !important;
+    color: #999999 !important;
 }
 
 .form-control,

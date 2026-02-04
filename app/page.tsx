@@ -23,15 +23,15 @@ export default function Home() {
                     {[
                         {
                             title: 'GitHub', link: 'https://github.com/kaanokman/portfolio',
-                            description: 'Repository of the app published on GitHUb', variant: 'dark'
+                            description: 'The repository of the application published on GitHub', variant: 'dark'
                         },
                         {
                             title: 'Demo', link: '/', variant: 'bark',
-                            description: 'Demonstration video of the Dashboard and how its features address the challenge'
+                            description: `A demonstration video of the dashboard's workflow`
                         },
                         {
                             title: 'Dashboard', link: '/dashboard', variant: 'sunlight',
-                            description: 'The interactive dashboard to test out the functionality'
+                            description: 'The implemented dashboard for managing voicemails'
                         },
                     ].map((project) =>
                         <Col xs={12} md={4} key={project.title} className='d-flex flex-column gap-3'>

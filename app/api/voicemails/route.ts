@@ -7,9 +7,11 @@ import { createClient as createDeepgramClient } from "@deepgram/sdk";
 
 const voicemailSchema = z.object({
     patient: z.string().nullable().describe("The name of the patient"),
-    reason: z.string().nullable().describe("The reason for the voicemail and short summary of content"),
-    suggestion: z.enum(["Call patient back", "Schedule appointment", "Send follow-up email", "Forward to doctor"]).nullable()
-        .describe("Recommended next steps for the voicemail"),
+    reason: z.string().max(250).describe(`The reason for the voicemail and short summary of content, should be concise.
+        If voicemail is unrelated to healthcare, administrative matters, or is not a distress call, return 'Not related to healthcare or administrative matters'.
+        If the message is empty, ambiguous or unclear, return 'Unclear or empty message' If it's a distress call, describe what they said.`),
+    suggestion: z.enum(["Call patient back", "Schedule appointment", "Send follow-up email", "Forward to doctor"])
+        .nullable().describe("Recommended next steps for the voicemail"),
     urgency: z.enum(["low", "medium", "high"]).nullable().describe("The urgency level of the voicemail"),
 });
 
@@ -45,12 +47,18 @@ export async function POST(req: Request) {
             },
         );
 
-        // Extract transcript from Deepgram response
-        const transcript = result?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
-        if (error || !transcript) {
+        if (error) {
             console.error("Error transcribing audio: ", error);
             return NextResponse.json({ error: "Error transcribing audio" }, { status: 500 });
         }
+        // Extract transcript from Deepgram response
+        const transcript = result?.results?.channels?.[0]?.alternatives?.[0]?.transcript;
+
+        if (!transcript) {
+            console.error('Audio/transcript too short');
+            return NextResponse.json({ error: "Audio/transcript too short" }, { status: 400 });
+        }
+
         const transcriptBuffer = Buffer.from(transcript, "utf-8");
 
         // Log transcript
@@ -62,7 +70,10 @@ export async function POST(req: Request) {
             model: "gemini-2.5-flash",
             contents: `
                 Given the following voicemail transcript sent to a healthcare provider, produce a JSON object containing
-                all of the relevant information.
+                all of the relevant information. For any nullable field, please return null if the information is not present
+                or if the voicemail is for something unrelated to a healthcare or administrative matter.
+
+                Voicemail Transcript:
 
                 ${transcript}
                 `,
@@ -85,8 +96,7 @@ export async function POST(req: Request) {
             timestamp: new Date().toISOString(),
             phone_number,
             user_id: user.id,
-            label: 'new',
-            assignee: null,
+            status: 'new',
         }
 
         // Log final voicemail object
