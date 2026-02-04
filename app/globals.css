@@ -200,6 +200,7 @@
 
 .google-login-wrapper iframe {
     width: 100% !important;
-    height: 38 !important;
+    height: 40 !important;
     margin: 0 !important;
+    display: flex !important;
 }
