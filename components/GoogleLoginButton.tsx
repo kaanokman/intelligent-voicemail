@@ -38,18 +38,20 @@ export default function GoogleLoginButton() {
         }
     };
 
-    return (ready ?
-        <div className='google-login-wrapper'>
-            <GoogleLogin
-                width={350}
-                onSuccess={(credentialResponse) => { void handleSignInWithGoogle(credentialResponse); }}
-                onError={() => {
-                    console.log('Login Failed');
-                }}
-            />
-        </div> :
-        <div className='flex justify-center items-center border' style={{ height: 40, minHeight: 40 }}>
-            <Spinner size='sm' />
+    return (
+        <div style={{ height: 44 }} className='flex items-center'>
+            {ready ?
+                <GoogleLogin
+                    width={350}
+                    onSuccess={(credentialResponse) => { void handleSignInWithGoogle(credentialResponse); }}
+                    onError={() => {
+                        console.log('Login Failed');
+                    }}
+                /> :
+                <div className='w-100 flex justify-center items-center border rounded' style={{ height: 40, minHeight: 40 }}>
+                    <Spinner size='sm' />
+                </div>
+            }
         </div>
     );
 }
