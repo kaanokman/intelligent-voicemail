@@ -5,7 +5,7 @@ export interface VoicemailType {
     reason: string | null;
     suggestion: string | null;
     urgency: string | null;
-    timestamp: string; // timestamptz → ISO string
+    timestamp: string;
     status: string;
 }
 
