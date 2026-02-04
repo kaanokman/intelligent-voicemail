@@ -197,3 +197,11 @@
 .custom-dropdown.show .dropdown-toggle {
     opacity: 1 !important;
 }
+
+.google-login-wrapper iframe {
+    width: '100%'
+}
+
+#gsi_923727_834872 {
+    width: '100%'
+}
