@@ -11,6 +11,7 @@ $custom-theme-colors: (
     "sunlight": #fbf582,
     "bark": #28030f,
     "oak": #ecd7c6,
+    "purple": #4727ff,
 );
 
 $theme-colors: map-merge($theme-colors, $custom-theme-colors);

@@ -2,14 +2,14 @@
 
 import { Row, Col } from "react-bootstrap";
 import Actions from "@/components/Actions";
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "react-toastify";
 import Table from 'react-bootstrap/Table';
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
-import { Modal, Button, Dropdown, Form } from "react-bootstrap";
+import { Modal, Button, Dropdown, Form, Pagination } from "react-bootstrap";
 import {
-    useReactTable, getCoreRowModel, getSortedRowModel,
-    flexRender, SortingState
+    useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel,
+    flexRender, SortingState, PaginationState
 } from "@tanstack/react-table";
 import { VoicemailType } from "@/types/components";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -24,6 +24,12 @@ const urgencyMap: Record<string, number> = {
     low: 0,
     medium: 1,
     high: 2,
+};
+const statusColorMap: Record<string, string> = {
+    new: "#0d6efd",
+    assigned: "#4727ff",
+    processed: "#198754",
+    junk: "#28030f",
 };
 
 const toastSettings = {
@@ -52,9 +58,9 @@ function LabelCell(props: {
 
     const variant = props.className ? undefined :
         selectedOption === "new"
-            ? "outline-danger"
+            ? "outline-primary"
             : selectedOption === "assigned"
-                ? "outline-primary"
+                ? "outline-purple"
                 : selectedOption === "processed"
                     ? "outline-success"
                     : selectedOption === "junk"
@@ -126,14 +132,22 @@ export default function Voicemails({ voicemails, error, range }: {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const { watch, control } = useForm();
+    const { watch, control } = useForm({
+        defaultValues: {
+            status: "new",
+            urgency: null,
+            nextSteps: null,
+        },
+    });
 
     const urgency = watch("urgency");
     const status = watch("status");
     const nextSteps = watch("nextSteps");
+    const statusBorderColor = status ? statusColorMap[status] : undefined;
 
     // Sorting state for the voicemails table
     const [sorting, setSorting] = useState<SortingState>([{ id: "timestamp", desc: false }]);
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 6 });
     // Current date range for which to load voicemails into client from server
     const [dateRange, setDateRange] = useState<RangeDate>(() => ({
         start: new Date(range.start),
@@ -161,8 +175,8 @@ export default function Voicemails({ voicemails, error, range }: {
 
     const statusOptions = useMemo(() => [
         { value: "new", label: "New" },
-        { value: "processed", label: "Processed" },
         { value: "assigned", label: "Assigned" },
+        { value: "processed", label: "Processed" },
         { value: "junk", label: "Junk" },
     ], []);
 
@@ -237,6 +251,15 @@ export default function Voicemails({ voicemails, error, range }: {
             cell: ({ getValue }) => getValue() || fallback
         },
         {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => (
+                <LabelCell id={Number(row.original.id)} field="status" initialOption={row.original.status} onUpdate={updateVoicemail}
+                    options={["new", "assigned", "processed", "junk"]} />
+            ),
+            sortDescFirst: true
+        },
+        {
             accessorKey: "urgency", header: "Urgency", sortDescFirst: true,
             sortingFn: (a, b, id) => {
                 const aVal = urgencyMap[a.getValue(id) as string] ?? -1;
@@ -253,15 +276,6 @@ export default function Voicemails({ voicemails, error, range }: {
                 }
                 return getValue() || fallback;
             },
-        },
-        {
-            accessorKey: "status",
-            header: "Status",
-            cell: ({ row }) => (
-                <LabelCell id={Number(row.original.id)} field="status" initialOption={row.original.status} onUpdate={updateVoicemail}
-                    options={["new", "assigned", "processed", "junk"]} />
-            ),
-            sortDescFirst: true
         },
         {
             accessorKey: "suggestion", header: "Next Steps", sortDescFirst: true,
@@ -287,6 +301,10 @@ export default function Voicemails({ voicemails, error, range }: {
         });
     }, [voicemails, urgency, status, nextSteps]);
 
+    useEffect(() => {
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }, [urgency, status, nextSteps, voicemails.length]);
+
     // Displays error if voicemails failed to load from server
     useEffect(() => {
         error && toast.error(error, { ...toastSettings, toastId: 'voicemailsError' });
@@ -302,10 +320,12 @@ export default function Voicemails({ voicemails, error, range }: {
     const table = useReactTable({
         data: filteredVoicemails,
         columns: columnDefs,
-        state: { sorting },
+        state: { sorting, pagination },
         onSortingChange: setSorting,
+        onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
         getRowId: (row) => String(row.id),
     });
 
@@ -350,6 +370,40 @@ export default function Voicemails({ voicemails, error, range }: {
             <Row className='g-3'>
                 <Col xs md={3}>
                     <Form.Group className='col'>
+                        <Form.Label className='mb-0'>Status</Form.Label>
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    instanceId="status"
+                                    inputId="status"
+                                    styles={{
+                                        control: (base, state) => ({
+                                            ...base,
+                                            borderColor: statusBorderColor ?? base.borderColor,
+                                            boxShadow: state.isFocused
+                                                ? `0 0 0 1px ${statusBorderColor ?? base.borderColor}`
+                                                : "none",
+                                            "&:hover": state.isFocused
+                                                ? {}
+                                                : {
+                                                    borderColor: statusBorderColor ?? "#b3b3b3",
+                                                },
+                                        }),
+                                    }}
+                                    options={statusOptions}
+                                    value={statusOptions.find(o => o.value === field.value) ?? null}
+                                    onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                    placeholder="All"
+                                    isClearable
+                                />
+                            )}
+                        />
+                    </Form.Group>
+                </Col>
+                <Col xs md={3}>
+                    <Form.Group className='col'>
                         <Form.Label className='mb-0'>Urgency</Form.Label>
                         <Controller
                             name="urgency"
@@ -361,27 +415,6 @@ export default function Voicemails({ voicemails, error, range }: {
                                     styles={{ menu: (base) => ({ ...base, zIndex: 5 }) }}
                                     options={urgencyOptions}
                                     value={urgencyOptions.find(o => o.value === field.value) ?? null}
-                                    onChange={(opt) => field.onChange(opt?.value ?? null)}
-                                    placeholder="All"
-                                    isClearable
-                                />
-                            )}
-                        />
-                    </Form.Group>
-                </Col>
-                <Col xs md={3}>
-                    <Form.Group className='col'>
-                        <Form.Label className='mb-0'>Status</Form.Label>
-                        <Controller
-                            name="status"
-                            control={control}
-                            render={({ field }) => (
-                                <Select
-                                    instanceId="status"
-                                    inputId="status"
-                                    styles={{ menu: (base) => ({ ...base, zIndex: 5 }) }}
-                                    options={statusOptions}
-                                    value={statusOptions.find(o => o.value === field.value) ?? null}
                                     onChange={(opt) => field.onChange(opt?.value ?? null)}
                                     placeholder="All"
                                     isClearable
@@ -414,94 +447,117 @@ export default function Voicemails({ voicemails, error, range }: {
             </Row>
             <Row className='g-3'>
                 <Col>
-                    <div
+                    <Table
+                        striped
+                        hover
                         style={{
-                            maxHeight: "450px",
-                            overflowY: "auto",
-                            overflowX: "auto",
+                            borderCollapse: "separate",
+                            borderSpacing: 0,
+                            marginBottom: 0,
+                            borderRadius: 4,
                             border: "1px solid #dee2e6",
-                        }} className='rounded'
+                        }}
                     >
-                        <Table
-                            striped
-                            hover
-                            style={{
-                                borderCollapse: "separate",
-                                borderSpacing: 0,
-                                marginBottom: 0,
-                                position: 'relative'
-                            }}
-                        >
-                            <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "white" }}>
-                                {table.getHeaderGroups().map(headerGroup => (
-                                    <tr key={headerGroup.id}>
-                                        {headerGroup.headers.map(header => (
-                                            <th
-                                                key={header.id}
-                                                onClick={header.column.getToggleSortingHandler()}
-                                                style={{
-                                                    cursor: "pointer", borderBottom: "1px solid #dee2e6", borderRight: "1px solid #dee2e6", userSelect: "none",
-                                                    minWidth: 135,
-                                                }}
-                                            >
-                                                <div className='d-flex align-items-center justify-content-between gap-2 text-nowrap'>
-                                                    {flexRender(header.column.columnDef.header, header.getContext())}
-                                                    <div style={{ fontSize: "0.65rem", color: "#adb5bd" }}
-                                                        className='d-flex flex-column align-items-center'>
-                                                        <FaSort size={16} />
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            color: header.column.getIsSorted() ? "#555" : undefined
-                                                        }}>
-                                                            {header.column.getIsSorted() === "asc" ? <FaSortUp size={16} /> :
-                                                                header.column.getIsSorted() === "desc" ? <FaSortDown size={16} /> : <></>}
-                                                        </div>
+                        <thead>
+                            {table.getHeaderGroups().map(headerGroup => (
+                                <tr key={headerGroup.id}>
+                                    {headerGroup.headers.map(header => (
+                                        <th
+                                            key={header.id}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                            style={{
+                                                cursor: "pointer", borderBottom: "1px solid #dee2e6", borderRight: "1px solid #dee2e6", userSelect: "none",
+                                                minWidth: 135,
+                                                borderTopLeftRadius: header.column.id === 'phone_number' ? 4 : 0,
+                                            }}
+                                        >
+                                            <div className='d-flex align-items-center justify-content-between gap-2 text-nowrap'>
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                <div style={{ fontSize: "0.65rem", color: "#adb5bd" }}
+                                                    className='d-flex flex-column align-items-center'>
+                                                    <FaSort size={16} />
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        color: header.column.getIsSorted() ? "#555" : undefined
+                                                    }}>
+                                                        {header.column.getIsSorted() === "asc" ? <FaSortUp size={16} /> :
+                                                            header.column.getIsSorted() === "desc" ? <FaSortDown size={16} /> : <></>}
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                            </th>
-                                        ))}
-                                        <th style={{ borderBottom: "1px solid #dee2e6" }}>Actions</th>
-                                    </tr>
-                                ))}
-                            </thead>
-                            <tbody>
-                                {table.getRowModel().rows.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={columnDefs.length + 1} className='border-bottom-0 text-center'>
-                                            No voicemails in date range
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    table.getRowModel().rows.map((row, rowIndex) => {
-                                        const isLastRow = rowIndex === table.getRowModel().rows.length - 1;
-                                        return (
-                                            <tr key={row.id}>
-                                                {row.getVisibleCells().map((cell, cellIndex) => (
-                                                    <td key={cell.id} style={{
-                                                        borderRight: "1px solid #dee2e6",
-                                                        borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
-                                                        padding: 0,
-                                                    }}>
-                                                        <div className="p-2 custom-scroll" style={['reason'].includes(cell.column.id) ?
-                                                            { maxHeight: '88px', overflow: 'auto' } : { overflow: 'visible', zIndex: 0 }}>
-                                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                        </div>
-                                                    </td>
-                                                ))}
-                                                <td
-                                                    style={{
-                                                        borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
-                                                    }}
-                                                >
-                                                    <Actions voicemail={row.original} />
+                                        </th>
+                                    ))}
+                                    <th style={{ borderBottom: "1px solid #dee2e6", borderTopRightRadius: 4 }}>Actions</th>
+                                </tr>
+                            ))}
+                        </thead>
+                        <tbody>
+                            {table.getRowModel().rows.length === 0 ? (
+                                <tr>
+                                    <td colSpan={columnDefs.length + 1} className='border-bottom-0 text-center'>
+                                        No voicemails in date range
+                                    </td>
+                                </tr>
+                            ) : (
+                                table.getRowModel().rows.map((row, rowIndex) => {
+                                    const isLastRow = rowIndex === table.getRowModel().rows.length - 1;
+                                    return (
+                                        <tr key={row.id}>
+                                            {row.getVisibleCells().map((cell, cellIndex) => (
+                                                <td key={cell.id} style={{
+                                                    borderRight: "1px solid #dee2e6",
+                                                    borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
+                                                    padding: 0, borderBottomLeftRadius: isLastRow ? 4 : 0,
+                                                }}>
+                                                    <div className="p-2 custom-scroll" style={['reason'].includes(cell.column.id) ?
+                                                        { maxHeight: '88px', overflow: 'auto' } : { overflow: 'visible', zIndex: 0 }}>
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </div>
                                                 </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </Table>
+                                            ))}
+                                            <td
+                                                style={{
+                                                    borderBottom: isLastRow ? "none" : "1px solid #dee2e6",
+                                                    borderBottomRightRadius: isLastRow ? 4 : 0,
+                                                }}
+                                            >
+                                                <Actions voicemail={row.original} />
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </Table>
+                    <div className="d-flex justify-content-center mt-2">
+                        <Pagination className="mb-0">
+                            <Pagination.First
+                                onClick={() => table.setPageIndex(0)}
+                                disabled={!table.getCanPreviousPage()}
+                            />
+                            <Pagination.Prev
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage()}
+                            />
+                            {Array.from({ length: table.getPageCount() }, (_, i) => (
+                                <Pagination.Item
+                                    key={i}
+                                    active={i === pagination.pageIndex}
+                                    onClick={() => table.setPageIndex(i)}
+                                >
+                                    {i + 1}
+                                </Pagination.Item>
+                            ))}
+                            <Pagination.Next
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage()}
+                            />
+                            <Pagination.Last
+                                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                                disabled={!table.getCanNextPage()}
+                            />
+                        </Pagination>
                     </div>
                 </Col>
             </Row>

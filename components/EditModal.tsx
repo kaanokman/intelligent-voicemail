@@ -134,6 +134,22 @@ export default function EditModal({ voicemail, show, setShow }: {
                     </Form.Group>
                     <div className='d-flex gap-3'>
                         <Form.Group className='col'>
+                            <Form.Label className='mb-0'>Status</Form.Label>
+                            <Controller
+                                name="status"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        isDisabled={loading}
+                                        options={statusOptions}
+                                        value={statusOptions.find(o => o.value === field.value) ?? null}
+                                        onChange={(opt) => field.onChange(opt?.value ?? null)}
+                                        placeholder="Select Status"
+                                    />
+                                )}
+                            />
+                        </Form.Group>
+                        <Form.Group className='col'>
                             <Form.Label className='mb-0'>Urgency</Form.Label>
                             <Controller
                                 name="urgency"
@@ -146,22 +162,6 @@ export default function EditModal({ voicemail, show, setShow }: {
                                         onChange={(opt) => field.onChange(opt?.value ?? null)}
                                         placeholder="Select Urgency"
                                         isClearable
-                                    />
-                                )}
-                            />
-                        </Form.Group>
-                        <Form.Group className='col'>
-                            <Form.Label className='mb-0'>Status</Form.Label>
-                            <Controller
-                                name="status"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        isDisabled={loading}
-                                        options={statusOptions}
-                                        value={statusOptions.find(o => o.value === field.value) ?? null}
-                                        onChange={(opt) => field.onChange(opt?.value ?? null)}
-                                        placeholder="Select Status"
                                     />
                                 )}
                             />
