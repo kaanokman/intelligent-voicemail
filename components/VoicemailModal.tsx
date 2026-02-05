@@ -155,7 +155,7 @@ export default function VoicemailModal({ show, setShow }: {
             Cancel
           </Button>
           <Button variant="primary" type="submit" disabled={loading.status} style={{ width: 80, height: 38 }}
-            className='flex justify-center'>
+            className='flex items-center justify-center'>
             {loading.status ? <Spinner size='sm' /> : 'Submit'}
           </Button>
         </Modal.Footer>

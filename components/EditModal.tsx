@@ -204,7 +204,8 @@ export default function EditModal({ voicemail, show, setShow }: {
           <Button variant="secondary" onClick={handleClose} disabled={loading} style={{ width: 80 }}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={loading} style={{ width: 80, height: 38 }} className='flex justify-center'>
+          <Button variant="primary" type="submit" disabled={loading} style={{ width: 80, height: 38 }}
+            className='flex items-center justify-center'>
             {loading ? <Spinner size='sm' /> : 'Submit'}
           </Button>
         </Modal.Footer>

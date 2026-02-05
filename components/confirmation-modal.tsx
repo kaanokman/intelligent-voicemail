@@ -33,7 +33,8 @@ export default function ConfirmationModal({
         <Button variant="secondary" onClick={handleClose} disabled={loading} style={{ width: 80 }}>
           Cancel
         </Button>
-        <Button variant="danger" onClick={onConfirm} disabled={loading} style={{ width: 80, height: 38 }}>
+        <Button variant="danger" onClick={onConfirm} disabled={loading} style={{ width: 80, height: 38 }}
+          className='flex items-center justify-center'>
           {loading ? <Spinner size='sm' /> : 'Delete'}
         </Button>
       </Modal.Footer>
