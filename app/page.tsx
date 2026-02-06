@@ -11,7 +11,7 @@ import { useState } from "react";
 
 export default function Home() {
   const [showDemo, setShowDemo] = useState(false);
-  const demoVideoUrl = "https://drive.google.com/file/d/1Dj9O4y8NZJoTcnYcAH01gQI5SgW5VxfB/preview";
+  const demoVideoUrl = "https://drive.google.com/file/d/13hQtb1CFVwJ6-nfYAfpUAVPxb8-nXovU/preview";
   const [loaded, setLoaded] = useState(false);
 
   return (
