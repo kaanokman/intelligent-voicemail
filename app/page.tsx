@@ -1,7 +1,7 @@
 "use client";
 
 import ProjectButton from "@/components/ProjectButton";
-import { Row, Col, Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Row, Col, Button, Modal, OverlayTrigger, Tooltip, Spinner } from "react-bootstrap";
 import { LuHammer } from "react-icons/lu";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { AiFillGithub } from "react-icons/ai";
@@ -11,7 +11,8 @@ import { useState } from "react";
 
 export default function Home() {
   const [showDemo, setShowDemo] = useState(false);
-  const demoVideoUrl = "https://drive.google.com/file/d/1p1r9-Ct_lMyCylvhEeBty3tVzxbGyD2W/preview";
+  const demoVideoUrl = "https://drive.google.com/file/d/1Dj9O4y8NZJoTcnYcAH01gQI5SgW5VxfB/preview";
+  const [loaded, setLoaded] = useState(false);
 
   return (
     <div className="d-flex align-items-center justify-content-center flex-grow-1 p-4 h-100">
@@ -52,21 +53,15 @@ export default function Home() {
                 <project.icon size={120} />
               </div>
               {project.title === "Demo" ? (
-                <OverlayTrigger
-                  placement="top"
-                  overlay={<Tooltip id="demo-coming-soon">Coming soon!</Tooltip>}
-                >
-                  <div className="w-100">
-                    <Button
-                      variant={project.variant ?? "primary"}
-                      className="w-100"
-                      onClick={() => setShowDemo(true)}
-                      disabled
-                    >
-                      {project.title}
-                    </Button>
-                  </div>
-                </OverlayTrigger>
+                <div className="w-100">
+                  <Button
+                    variant={project.variant ?? "primary"}
+                    className="w-100"
+                    onClick={() => setShowDemo(true)}
+                  >
+                    {project.title}
+                  </Button>
+                </div>
               ) : (
                 <ProjectButton title={project.title} link={project.link} variant={project.variant} />
               )}
@@ -79,7 +74,10 @@ export default function Home() {
       </div>
       <Modal
         show={showDemo}
-        onHide={() => setShowDemo(false)}
+        onHide={() => {
+          setShowDemo(false);
+          setLoaded(false);
+        }}
         size="lg"
         centered
       >
@@ -87,12 +85,22 @@ export default function Home() {
           <Modal.Title>Dashboard Demo Video</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className='p-3'>
+          <div className='p-3 relative'>
+            {!loaded &&
+              <div className='absolute inset-0 flex justify-center items-center w-100'
+                style={{ zIndex: 99, aspectRatio: 169 / 100 }}>
+                <Spinner />
+              </div>
+            }
             <iframe
               src={demoVideoUrl}
               title="Demo Video"
               allow="autoplay; fullscreen"
-              style={{ width: "100%", height: 395 }}
+              style={{
+                width: "100%", aspectRatio: 734 / 434,
+                visibility: loaded ? "visible" : "hidden",
+              }}
+              onLoad={() => setLoaded(true)}
             />
           </div>
         </Modal.Body>
