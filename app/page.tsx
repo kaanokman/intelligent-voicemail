@@ -1,7 +1,7 @@
 "use client";
 
 import ProjectButton from "@/components/ProjectButton";
-import { Row, Col, Button, Modal, OverlayTrigger, Tooltip, Spinner } from "react-bootstrap";
+import { Row, Col, Button, Modal, Spinner } from "react-bootstrap";
 import { LuHammer } from "react-icons/lu";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { AiFillGithub } from "react-icons/ai";
@@ -21,13 +21,13 @@ export default function Home() {
         <Row>
           <Col className='d-flex flex-column gap-2 items-center'>
             <div className='text-2xl'>KAAN OKMAN</div>
-            <div className='text-5xl text-italic'> Intelligent Voicemail </div>
-            <div className='d-flex gap-2 text-3xl border border-oak rounded-4 px-3 py-2' style={{ backgroundColor: '#fff9f1' }}>
+            <div className='text-5xl text-italic'> Intelligent Voicemail Dashboard </div>
+            {/* <div className='d-flex gap-2 text-3xl border border-oak rounded-4 px-3 py-2' style={{ backgroundColor: '#fff9f1' }}>
               <div className='h-100 flex items-center'>
                 <LuHammer />
               </div>
               Forward Deployed Engineer - Project 2
-            </div>
+            </div> */}
           </Col>
         </Row>
         <Row>
